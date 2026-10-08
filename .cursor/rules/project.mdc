@@ -1,0 +1,283 @@
+---
+description: Convenciones del proyecto aplus-frontend (estructura por features, API, formularios, imports)
+alwaysApply: true
+---
+
+# Reglas del proyecto aplus-frontend
+
+## Estructura por features
+
+- Cada feature vive en `src/features/<feature>/` (ej. `classification`, `invoices`, `catalogs`).
+- Dentro del feature: `interfaces/`, `services/` (endpoints + queries), `hooks/`, `pages/`, `components/`.
+- Código compartido en `src/shared/` (helpers, react-query keys, componentes UI).
+
+### Páginas vs componentes (obligatorio)
+
+- `pages/` **orquesta**: importa, compone, no define UI extraída.
+- **Prohibido** declarar un segundo componente (`const Foo = () => …`) en el mismo archivo de página o del componente principal.
+- JSX de **un solo uso** y corto: dejarlo **inline**.
+- Si se extrae: archivo propio en `src/features/<feature>/components/` (o carpeta del submódulo). Extraer en el mismo archivo es peor que inline.
+
+```tsx
+// Incorrecto — componente extra en la página
+const LockedTabTrigger = () => { /* ... */ };
+const PartNumbersPage = () => { /* ... */ };
+
+// Correcto — inline si es un solo uso
+{isEdit ? <TabsTrigger value="adicionales" /> : (
+  <Tooltip>{/* trigger deshabilitado */}</Tooltip>
+)}
+
+// Correcto — extraído a archivo propio
+import LockedTabTrigger from '../components/LockedTabTrigger';
+```
+
+### Submódulos en features grandes (obligatorio)
+
+En módulos con varios submódulos (ej. `configuration` con `sequences`, `mail-config`), **cada submódulo** organiza su código en carpetas propias — no archivos sueltos en la raíz de `interfaces/`, `schemas/`, etc.
+
+Estructura de referencia (`configuration`):
+
+```
+src/features/configuration/
+  components/
+    Sequences/
+    MailConfig/
+      Skeletons/
+  interfaces/
+    sequences/
+      get-all.interface.ts
+      create.interface.ts
+      update.interface.ts
+    mail-config/
+      get.interface.ts
+      create.interface.ts
+      update.interface.ts
+      test-send.interface.ts
+  schemas/
+    sequences/
+      create.schema.ts
+    mail-config/
+      upsert.schema.ts
+  services/
+    sequences/
+    mail-config/
+```
+
+Aplica igual a: `interfaces/`, `schemas/`, `services/`, `components/` y `Skeletons/`.
+
+## Skeletons de página / módulo (obligatorio)
+
+- Los skeletons de un módulo **no** van inline en la página ni en el mismo archivo del componente principal.
+- Ubicación: `src/features/<feature>/components/<Modulo>/Skeletons/` (o `components/Skeletons/` si aplica a todo el feature).
+- Al crear o mover un skeleton de ruta/página lazy:
+  1. Crear el componente en esa carpeta `Skeletons`.
+  2. **Registrar** el skeleton en `src/app/routes/wrappers/skeleton.routes.tsx` con el `path` de `ROUTES` correspondiente.
+- Reutilizar skeletons compartidos de `@/components/skeletons/` cuando encajen (header, tabs, inputs).
+- En páginas con tabs: el skeleton de ruta refleja solo el **primer tab** (contenido inicial). No hace falta un skeleton por cada tab.
+
+## Tabs con persistencia (obligatorio)
+
+Cuando una página use tabs y deba **recordar la tab activa** (p. ej. tras recargar):
+
+- Usar el hook compartido `useTabSearchParam` desde `@/shared/hooks/useTabSearchParam`.
+- **No** reinventar la lógica con `useSearchParams` / `localStorage` ad hoc para este caso.
+- Definir en el feature el arreglo de tabs válidos y la tab default; el hook persiste en `?tab=` y limpia el param si la tab es la default.
+
+```ts
+const TABS = ['sequences', 'mail'] as const;
+const { activeTab, setActiveTab } = useTabSearchParam(TABS, 'sequences');
+
+<Tabs value={activeTab} onValueChange={setActiveTab}>
+```
+
+Excepción: tabs puramente locales (modales, paneles internos sin necesidad de URL) pueden seguir con `useState`.
+
+## Servicios (API)
+
+- En features con submódulos: `services/<submodulo>/endpoints.ts` y `services/<submodulo>/queries.ts`.
+- En features simples: `services/endpoints.ts` y `services/queries.ts`.
+- **Endpoints**: funciones que llaman a `api.get/post/...` y devuelven `response.data`. No usar el sufijo "Endpoint" en el nombre (ej. `getFractionByCode`, no `getFractionByCodeEndpoint`).
+- **URLs de API (obligatorio)**: escribir el path **literal** en cada llamada (`api.get('/catalog/...')`, `` api.patch(`/catalog/.../${id}`) ``). **Prohibido** extraer el path a constantes tipo `BASE_PATH`, `API_URL`, `ENDPOINTS`, etc.
+
+```ts
+// Incorrecto
+const DIGITALIZACION_MODULOS_BASE_PATH = '/catalog/digitalizacion-modulos';
+const response = await api.get(DIGITALIZACION_MODULOS_BASE_PATH);
+
+// Correcto
+const response = await api.get('/catalog/digitalizacion-modulos');
+const responseById = await api.get(`/catalog/digitalizacion-modulos/${id}`);
+```
+
+- **Queries**: hooks `useGetX` que usan `useQuery` de TanStack Query, con `queryKey` de `QUERY_KEYS.<FEATURE>.<KEY>` (definidos en `@/shared/react-query/query-keys`), `queryFn` que llama al endpoint, y opciones como `enabled`, `staleTime`, `retry`.
+- **Query keys (obligatorio)**: **nunca** definir query keys manualmente como arrays literales (ej. `['document-digitization']`, `['users', id]`). Siempre usar `QUERY_KEYS` importado desde `@/shared/react-query/query-keys`. Esto aplica a `useQuery`, `useInfiniteQuery`, `invalidateQueries`, `removeQueries`, `prefetchQuery`, `setQueryData`, etc.
+  - Si la key que necesitas no existe, **añádela primero** en `query-keys.ts` dentro del objeto del feature (incluyendo keys raíz como `ALL` para invalidaciones amplias) y luego úsala desde ahí.
+  - Ejemplo correcto: `queryClient.invalidateQueries({ queryKey: QUERY_KEYS.DOCUMENT_DIGITIZATION.ALL })`
+  - Ejemplo incorrecto: `queryClient.invalidateQueries({ queryKey: ['document-digitization'] })`
+- Añadir cada nuevo endpoint y su query key en `query-keys.ts` dentro del objeto del feature.
+- Para **manejo de errores**:
+  - Los endpoints **GET** usan exclusivamente `handleApiError` dentro de los `endpoints.ts`.
+  - Los endpoints de **mutación** (`POST`, `PATCH`, `PUT`, `DELETE`, etc.) no usan `handleApiError`; su error se maneja en las `queries` con `handleMutationError` en los `useMutation`. No mezclar ambos manejadores en un mismo flujo (`GET` + `handleMutationError`), porque la estructura de errores es distinta y no se muestran correctamente.
+  - **GET nunca traga el error.** `handleApiError` **siempre lanza**; el `catch` debe hacer `throw handleApiError(...)`. Prohibido código después de `handleApiError` (`return []`, `return undefined`, etc.): es muerto o esconde el fallo como lista vacía. Tampoco devolver `[]` / `null` si la forma de la respuesta no coincide: lanzar.
+  - Default `data: items = []` en el componente (React Query `data` aún `undefined` en carga) **sí** está permitido.
+
+```ts
+// Incorrecto
+} catch (error) {
+  handleApiError(error);
+  return [];
+}
+
+// Incorrecto
+if (!Array.isArray(data)) return [];
+
+// Correcto
+} catch (error) {
+  throw handleApiError(error, 'No se pudo obtener los textos complementarios');
+}
+  - **Prohibido `catch` vacío** (también el que solo comenta o hace `console.error` y traga el error). Si el `catch` no recupera, no transforma y no relanza, no existe.
+  - En submits/`mutateAsync`: no envolver en `try/catch` para “por si acaso”. El toast ya lo hace `onError: handleMutationError`. Si la mutación falla, el `await` corta y el éxito (cerrar modal, `reset`) no corre.
+
+```ts
+// Incorrecto
+try {
+  await createProduct(values);
+  setOpen(false);
+} catch {
+  // toast via handleMutationError
+}
+
+// Incorrecto
+try {
+  await createProduct(values);
+} catch (error) {
+  console.error('Error:', error);
+}
+
+// Correcto
+await createProduct(values);
+setOpen(false);
+```
+
+## Tablas con datos paginados (obligatorio)
+
+Si el listado viene paginado (`page`, `limit`, `total`) y se muestra en una tabla, la paginación va con `useTablePagination` de `@/components/features/DataTable/hooks/useTablePagination`. **Prohibido** armar `page` / `pageSize` con `useState` propio o recortar el arreglo en el cliente cuando el endpoint ya pagina.
+
+- La query recibe `page`, `limit: pageSize` y `search: debouncedSearch`.
+- `DataTable` recibe `page`, `pageSize`, `onPageChange`, `onPageSizeChange`, `totalRecords`, `totalPages`, `globalFilter` y `onGlobalFilterChange`.
+- Cambiar tamaño de página o búsqueda vuelve a la página 1 con `resetPage()`.
+- Si la respuesta trae `total` y no `totalPages`, calcular `Math.ceil(total / pageSize)`.
+
+```tsx
+const { page, pageSize, search, debouncedSearch, setPage, setPageSize, setSearch, resetPage } = useTablePagination();
+const { data: response, isFetching } = useGetItems({ page, limit: pageSize, search: debouncedSearch });
+const total = response?.total ?? 0;
+const totalPages = response?.totalPages ?? (pageSize > 0 ? Math.ceil(total / pageSize) : 0);
+
+<DataTable
+  data={response?.data ?? []}
+  loading={isFetching}
+  page={page}
+  pageSize={pageSize}
+  onPageChange={setPage}
+  onPageSizeChange={(size) => {
+    setPageSize(size);
+    resetPage();
+  }}
+  totalRecords={total}
+  totalPages={totalPages}
+  globalFilter={search}
+  onGlobalFilterChange={(value) => {
+    resetPage();
+    setSearch(value);
+  }}
+/>
+```
+
+## Interfaces y tipos
+
+- Interfaces de dominio/API en `interfaces/` del feature (o `interfaces/<submodulo>/` si hay submódulos). Prefijo `I` para respuestas/contratos.
+- **Un archivo por tipo de operación** (no agrupar create/get/update en un solo `.interface.ts`):
+  - `get.interface.ts` / `get-all.interface.ts` — respuesta(s) y params de lectura
+  - `create.interface.ts` — request de creación
+  - `update.interface.ts` — request de actualización
+  - Otros según operación: `test-send.interface.ts`, `delete.interface.ts`, etc.
+- Tipos de formulario/schema: usar tipos inferidos de Zod y exportarlos desde `schemas/`. Para payloads que no envían `id`/`good_id`, usar tipos de schema, no interfaces de entidad con id.
+- **Create ≠ entidad:** el request de create lleva interfaz propia (`ICreateXControl`, `ICreateXDetalles`). **Prohibido** recortar la entidad GET/update con `Pick`/`Omit` para el POST. Detalle en `api-contracts.mdc`.
+
+## Formularios (React Hook Form + Zod)
+
+- Esquemas en `schemas/` (o `schemas/<submodulo>/` si hay submódulos); `resolver: zodResolver(schema)` en `useForm`.
+- **Helpers Zod (obligatorio)**: usar `@/shared/helpers/zod-helpers` (`stringField`, `numberField`, `emailField`, `booleanField`, `idField`, etc.) para campos estándar.
+  - **Excepción**: enums (`z.enum`), `superRefine` / validaciones condicionales o custom, y casos que no cubra el helper.
+- Lógica de formulario en hooks custom (ej. `useClassification`): `useForm`, defaultValues, reset en `useEffect` cuando llegan datos (ej. `good`), `buildPayload` y submit.
+- No llamar `setState` de forma síncrona dentro de un `useEffect` si el linter lo desaconseja; derivar o mover la lógica.
+
+## React Compiler y memoización
+
+- Si `useMemo` (ej. columnas de tabla) usa handlers en el cuerpo, incluir esos handlers en el array de dependencias. Envolver esos handlers en `useCallback` con dependencias mínimas (ej. `[mode]`) para que la memoización sea estable y el compilador no marque "Existing memoization could not be preserved".
+
+## Imports
+
+- Usar alias `@/` para imports (ej. `@/shared/...`, `@/features/classification/...`, `@/components/ui/...`).
+
+## Estilo y convenciones
+
+- Comentarios y mensajes de UI en español cuando el producto esté en español.
+- **Código en inglés**: carpetas, archivos, identificadores (variables, funciones, hooks, interfaces, query keys). Español solo en UI y en campos/paths del contrato API si el backend los exige. Ver `naming.mdc`.
+- Nombres **descriptivos** (ver `naming.mdc`): el identificador dice qué guarda o qué hace; sin abreviar ni genéricos (`data`, `tmp`, `res`).
+
+# Regla Adicional: Actualización de Estado desde useEffect
+
+## Prohibición de `setState` directo dentro de `useEffect`
+
+### Regla
+
+**Nunca se debe invocar directamente el setter de un hook de estado (`setState` de `useState`) dentro de un `useEffect`.**
+
+Esto incluye llamadas como:
+
+- `setX(...)`
+- `setState(prev => ...)`
+- Actualizaciones condicionadas o encadenadas dentro del efecto
+
+### Justificación
+
+- Introduce acoplamiento implícito entre efectos y estado
+- Aumenta el riesgo de:
+  - Closures obsoletos
+  - Dependencias incorrectas
+  - Re-ejecuciones innecesarias
+- Dificulta el razonamiento del flujo de datos
+- Rompe la separación entre:
+  - **Reacción a cambios** (`useEffect`)
+  - **Actualización de estado** (acciones explícitas)
+
+---
+
+## Enfoque Correcto: `useEffectEvent`
+
+### Principio
+
+- El `useEffect` **solo decide cuándo reaccionar**
+- La lógica de actualización de estado vive en un **evento estable**
+- El setter de estado **solo se usa dentro del `useEffectEvent`**
+
+---
+
+## Patrón Recomendado
+
+### Ejemplo Correcto
+
+```ts
+const updateCountry = useEffectEvent((countryCode: string) => {
+  setSelectedCountry(countryCode);
+});
+
+useEffect(() => {
+  if (pais) {
+    updateCountry(pais);
+  }
+}, [pais]);
+```

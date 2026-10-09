@@ -1,26 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError } from '@/shared/helpers/handle-mutation-error.ts'
 import { QUERY_KEYS } from '@/shared/react-query/query-keys.ts'
-import type { IGetAllProducts, IGetAllProductsParams } from '../interfaces/get-all.interface.ts'
-import type { IGetProduct } from '../interfaces/get.interface.ts'
+import type { IGetAllProductsParams } from '../interfaces/get-all.interface.ts'
 import type { IUpdateProduct } from '../interfaces/update.interface.ts'
 import { createProduct, deactivateProduct, getProduct, getProducts, updateProduct } from './endpoints.ts'
-
-function cachedProduct(queryClient: QueryClient, productId: number) {
-  let product: IGetProduct | undefined
-  let updatedAt = 0
-
-  for (const query of queryClient.getQueryCache().findAll({ queryKey: QUERY_KEYS.PRODUCTS.LISTS })) {
-    const page = query.state.data as IGetAllProducts | undefined
-    const match = page?.data.find((item) => item.id === productId)
-    if (!match || query.state.dataUpdatedAt < updatedAt) continue
-
-    product = match
-    updatedAt = query.state.dataUpdatedAt
-  }
-
-  return product ? { product, updatedAt } : undefined
-}
 
 export function useGetProducts(params: IGetAllProductsParams) {
   return useQuery({
@@ -30,14 +13,10 @@ export function useGetProducts(params: IGetAllProductsParams) {
 }
 
 export function useGetProduct(productId: number) {
-  const queryClient = useQueryClient()
-
   return useQuery({
     queryKey: QUERY_KEYS.PRODUCTS.DETAIL(productId),
     queryFn: () => getProduct(productId),
     enabled: productId > 0,
-    initialData: () => cachedProduct(queryClient, productId)?.product,
-    initialDataUpdatedAt: () => cachedProduct(queryClient, productId)?.updatedAt,
   })
 }
 

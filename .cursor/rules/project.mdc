@@ -208,6 +208,13 @@ const totalPages = response?.totalPages ?? (pageSize > 0 ? Math.ceil(total / pag
 
 ## Formularios (React Hook Form + Zod)
 
+- **Alta y edición, un solo formulario.** Crear y editar la misma entidad usan el mismo componente (ej. `ProductForm`). La página solo orquesta: pasa `null` en alta o la entidad cargada con get by id en edición. Prohibido un componente de formulario distinto para cada modo (`ProductCreateForm` / `ProductEditForm`).
+
+```tsx
+<ProductForm product={null} onClose={goBack} />
+<ProductForm product={productQuery.data} onClose={goBack} />
+```
+
 - Esquemas en `schemas/` (o `schemas/<submodulo>/` si hay submódulos); `resolver: zodResolver(schema)` en `useForm`.
 - **Helpers Zod (obligatorio)**: usar `@/shared/helpers/zod-helpers` (`stringField`, `numberField`, `emailField`, `booleanField`, `idField`, etc.) para campos estándar.
   - **Excepción**: enums (`z.enum`), `superRefine` / validaciones condicionales o custom, y casos que no cubra el helper.

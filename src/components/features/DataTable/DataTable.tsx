@@ -1,8 +1,15 @@
 import { useTable, type ColumnDef, type OnChangeFn, type PaginationState, type RowData } from '@tanstack/react-table'
+import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator.tsx'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.tsx'
 import DataTablePagination from './DataTablePagination.tsx'
 import { features, type DataTableFeatures } from './data-table-features.ts'
+
+const ROW_CONTROL_SELECTOR = 'input, textarea, select, button, a, [role="combobox"], [role="listbox"], [role="menu"]'
+
+function isRowControlTarget(target: EventTarget | null) {
+  return target instanceof Element && target.closest(ROW_CONTROL_SELECTOR) !== null
+}
 
 interface DataTableProps<TData extends RowData> {
   columns: ColumnDef<DataTableFeatures, TData>[]
@@ -13,6 +20,7 @@ interface DataTableProps<TData extends RowData> {
   totalPages: number
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
+  onRowDoubleClick?: (row: TData) => void
 }
 
 export default function DataTable<TData extends RowData>({
@@ -24,6 +32,7 @@ export default function DataTable<TData extends RowData>({
   totalPages,
   onPageChange,
   onPageSizeChange,
+  onRowDoubleClick,
 }: DataTableProps<TData>) {
   const pagination: PaginationState = {
     pageIndex: Math.max(page - 1, 0),
@@ -72,7 +81,18 @@ export default function DataTable<TData extends RowData>({
         <TableBody>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className={cn(onRowDoubleClick && 'cursor-pointer')}
+                onDoubleClick={
+                  onRowDoubleClick
+                    ? (event) => {
+                        if (isRowControlTarget(event.target)) return
+                        onRowDoubleClick(row.original)
+                      }
+                    : undefined
+                }
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     <table.FlexRender cell={cell} />

@@ -29,7 +29,7 @@ export default function ProductFormDialog({ productId, onClose }: ProductFormDia
             <AlertDescription>No se pudo cargar el producto.</AlertDescription>
           </Alert>
         ) : null}
-        {productQuery.data ? <ProductForm product={productQuery.data} onClose={onClose} /> : null}
+        {productQuery.data ? <ProductForm product={productQuery.data} onClose={onClose} embedded /> : null}
       </DialogContent>
     </Dialog>
   )

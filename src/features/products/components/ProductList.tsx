@@ -1,65 +1,63 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router'
 import DataTable from '@/components/features/DataTable/DataTable.tsx'
-import { Card } from '@/components/ui/card.tsx'
+import type { IGetCategory } from '@/features/categories/interfaces/get.interface.ts'
+import type { ProductRowEditHandlers } from '../hooks/useProductRowEdit.ts'
 import type { IGetProduct } from '../interfaces/get.interface.ts'
 import { createProductColumns } from './product-columns.tsx'
 
-interface ProductListProps {
+interface ProductListProps extends ProductRowEditHandlers {
   products: IGetProduct[]
-  categoryNames: Map<number, string>
+  categories: IGetCategory[]
   page: number
   pageSize: number
   totalPages: number
   total: number
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
-  onEdit: (productId: number) => void
-  onView: (productId: number) => void
-  onToggleActive: (product: IGetProduct) => void
   onDeactivate: (productId: number) => void
-  togglingProductId: number | null
 }
 
 export default function ProductList({
   products,
-  categoryNames,
+  categories,
   page,
   pageSize,
   totalPages,
   total,
   onPageChange,
   onPageSizeChange,
-  onEdit,
-  onView,
-  onToggleActive,
   onDeactivate,
-  togglingProductId,
+  valuesFor,
+  errorFor,
+  setField,
+  isSaving,
 }: ProductListProps) {
+  const navigate = useNavigate()
   const columns = useMemo(
     () =>
       createProductColumns({
-        categoryNames,
-        onEdit,
-        onView,
-        onToggleActive,
+        categories,
+        valuesFor,
+        errorFor,
+        setField,
+        isSaving,
         onDeactivate,
-        togglingProductId,
       }),
-    [categoryNames, onDeactivate, onEdit, onToggleActive, onView, togglingProductId],
+    [categories, valuesFor, errorFor, setField, isSaving, onDeactivate],
   )
 
   return (
-    <Card>
-      <DataTable
-        columns={columns}
-        data={products}
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        onPageSizeChange={onPageSizeChange}
-      />
-    </Card>
+    <DataTable
+      columns={columns}
+      data={products}
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      totalPages={totalPages}
+      onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
+      onRowDoubleClick={(product) => navigate(`/productos/${product.id}`)}
+    />
   )
 }

@@ -1,19 +1,18 @@
-import { LogOutIcon, PackageIcon } from 'lucide-react'
+import { BoxesIcon, LogOutIcon, PackageIcon } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from '@/components/ui/sidebar.tsx'
 import { useAuth } from '@/shared/auth/useAuth.ts'
+
+const menuButtonClassName =
+  'h-10 rounded-xl px-2.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary data-active:bg-primary/10 data-active:text-primary group-data-[collapsible=icon]:rounded-xl'
 
 export default function AppSidebar() {
   const { endSession } = useAuth()
@@ -21,36 +20,37 @@ export default function AppSidebar() {
   const productsActive = pathname === '/' || pathname.startsWith('/productos')
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <p className="px-2 font-heading text-sm font-medium">Boxes</p>
+    <Sidebar collapsible="icon" className="[&_[data-slot=sidebar-inner]]:bg-primary/[0.04]">
+      <SidebarHeader className="px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+        <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8">
+          <BoxesIcon className="size-5" />
+        </div>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Inventario</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton isActive={productsActive} render={<NavLink to="/" />}>
-                  <PackageIcon />
-                  Productos
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="px-2 pt-1 group-data-[collapsible=icon]:overflow-visible">
+        <SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center">
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenuButton
+              isActive={productsActive}
+              tooltip="Productos"
+              className={menuButtonClassName}
+              render={<NavLink to="/" />}
+            >
+              <PackageIcon />
+              <span>Productos</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={endSession}>
+      <SidebarFooter className="gap-2 px-3 pt-2 pb-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+        <SidebarMenu className="group-data-[collapsible=icon]:items-center">
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenuButton tooltip="Cerrar sesión" className={menuButtonClassName} onClick={endSession}>
               <LogOutIcon />
-              Cerrar sesión
+              <span>Cerrar sesión</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

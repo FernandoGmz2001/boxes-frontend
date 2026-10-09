@@ -22,8 +22,7 @@ const STATUS_LABELS: Record<ProductStatus, string> = {
 
 export default function ProductToolbar({ status, totalLabel, onStatusChange }: ProductToolbarProps) {
   return (
-    <header className="flex flex-wrap items-center gap-3">
-      <h1 className="mr-auto font-heading text-2xl font-medium">Productos</h1>
+    <>
       <ToggleGroup
         variant="outline"
         spacing={0}
@@ -44,6 +43,6 @@ export default function ProductToolbar({ status, totalLabel, onStatusChange }: P
         <PlusIcon data-icon="inline-start" />
         Nuevo producto
       </Button>
-    </header>
+    </>
   )
 }

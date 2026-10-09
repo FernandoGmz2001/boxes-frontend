@@ -1,50 +1,59 @@
-import type { ReactTable, RowData } from '@tanstack/react-table'
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button.tsx'
-import { Field, FieldLabel } from '@/components/ui/field.tsx'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select.tsx'
-import type { DataTableFeatures } from './data-table-features.ts'
+import type { ReactTable, RowData } from "@tanstack/react-table";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button.tsx";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox.tsx";
+import { Field, FieldLabel } from "@/components/ui/field.tsx";
+import type { DataTableFeatures } from "./data-table-features.ts";
 
-const PAGE_SIZE_ITEMS = [
-  { label: '10', value: '10' },
-  { label: '20', value: '20' },
-  { label: '50', value: '50' },
-]
+const PAGE_SIZES = ["5", "10", "20", "50"];
 
 interface DataTablePaginationProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>
+  table: ReactTable<DataTableFeatures, TData>;
 }
 
-export default function DataTablePagination<TData extends RowData>({ table }: DataTablePaginationProps<TData>) {
-  const { pageIndex, pageSize } = table.state.pagination
-  const pageCount = table.getPageCount()
-  const rowCount = table.getRowCount()
+export default function DataTablePagination<TData extends RowData>({
+  table,
+}: DataTablePaginationProps<TData>) {
+  const { pageIndex, pageSize } = table.state.pagination;
+  const pageCount = table.getPageCount();
+  const rowCount = table.getRowCount();
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4">
       <Field orientation="horizontal" className="w-fit">
         <FieldLabel htmlFor="page-size">Filas</FieldLabel>
-        <Select
-          items={PAGE_SIZE_ITEMS}
+        <Combobox
+          items={PAGE_SIZES}
           value={String(pageSize)}
           onValueChange={(value) => {
-            if (value == null) return
-            table.setPageSize(Number(value))
+            if (value == null) return;
+            table.setPageSize(Number(value));
           }}
         >
-          <SelectTrigger id="page-size" size="sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent side="top">
-            <SelectGroup>
-              {PAGE_SIZE_ITEMS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          <ComboboxInput id="page-size" aria-label="Filas por página" />
+          <ComboboxContent side="top">
+            <ComboboxEmpty>Sin coincidencias.</ComboboxEmpty>
+            <ComboboxList>
+              {(size) => (
+                <ComboboxItem key={size} value={size}>
+                  {size}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </Field>
       <p className="text-muted-foreground">
         Página {pageCount === 0 ? 0 : pageIndex + 1} de {pageCount} ({rowCount})
@@ -92,5 +101,5 @@ export default function DataTablePagination<TData extends RowData>({ table }: Da
         </Button>
       </div>
     </div>
-  )
+  );
 }

@@ -15,9 +15,24 @@ function stockField(message: string) {
   return z.number(message).int('Ingresa un número entero').min(0, 'No puede ser negativo')
 }
 
+const IMAGE_DATA_URL = /^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/]+=*$/
+
 export const productSchema = z.object({
   nombre_producto: stringField('El nombre es obligatorio'),
-  imagen_url: z.union([z.literal(''), z.url('Ingresa una URL válida')]),
+  imagen_url: z.string().trim().superRefine((value, ctx) => {
+    if (value.length === 0) return
+
+    if (value.startsWith('data:')) {
+      if (!IMAGE_DATA_URL.test(value)) {
+        ctx.addIssue({ code: 'custom', message: 'La imagen no es válida' })
+      }
+      return
+    }
+
+    if (!z.url().safeParse(value).success) {
+      ctx.addIssue({ code: 'custom', message: 'Ingresa una URL válida' })
+    }
+  }),
   cantidad_en_existencia: stockField('Ingresa la existencia'),
   stock_minimo: stockField('Ingresa el stock mínimo'),
   sku: z.string().trim(),

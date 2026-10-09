@@ -9,9 +9,120 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group"
-import { ChevronDownIcon, XIcon, CheckIcon } from "lucide-react"
+import { ChevronDownIcon, XIcon, CheckIcon, PlusIcon } from "lucide-react"
 
-const Combobox = ComboboxPrimitive.Root
+interface ComboboxCreateState {
+  visible: boolean
+  label: string
+  creating: boolean
+  create: () => void
+}
+
+const ComboboxCreateContext = React.createContext<ComboboxCreateState>({
+  visible: false,
+  label: "",
+  creating: false,
+  create: () => {},
+})
+
+function itemLabel(item: unknown) {
+  if (typeof item === "string" || typeof item === "number") return String(item)
+  if (item && typeof item === "object" && "label" in item && item.label != null) {
+    return String(item.label)
+  }
+  return ""
+}
+
+function hasExactItem(items: unknown, query: string) {
+  if (!Array.isArray(items)) return false
+
+  return items.some(
+    (item) => itemLabel(item).trim().toLocaleLowerCase() === query,
+  )
+}
+
+function Combobox<Value, Multiple extends boolean | undefined = false>({
+  onCreate,
+  items,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  onInputValueChange,
+  ...props
+}: ComboboxPrimitive.Root.Props<Value, Multiple> & {
+  onCreate?: (label: string) => void | Promise<void>
+}) {
+  const [query, setQuery] = React.useState("")
+  const [creating, setCreating] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const open = openProp ?? uncontrolledOpen
+  const normalizedQuery = query.trim()
+  const visible =
+    onCreate != null &&
+    normalizedQuery.length > 0 &&
+    !hasExactItem(items, normalizedQuery.toLocaleLowerCase())
+
+  const close = () => {
+    if (openProp === undefined) setUncontrolledOpen(false)
+    onOpenChange?.(false, undefined as never)
+  }
+
+  const create = () => {
+    if (!onCreate || normalizedQuery.length === 0 || creating) return
+
+    setCreating(true)
+    void Promise.resolve(onCreate(normalizedQuery))
+      .then(() => {
+        close()
+      })
+      .finally(() => {
+        setCreating(false)
+      })
+  }
+
+  return (
+    <ComboboxCreateContext.Provider
+      value={{ visible, label: normalizedQuery, creating, create }}
+    >
+      <ComboboxPrimitive.Root
+        items={items}
+        open={open}
+        onOpenChange={(nextOpen, details) => {
+          if (openProp === undefined) setUncontrolledOpen(nextOpen)
+          onOpenChange?.(nextOpen, details)
+        }}
+        onInputValueChange={(inputValue, details) => {
+          setQuery(inputValue)
+          onInputValueChange?.(inputValue, details)
+        }}
+        {...props}
+      />
+    </ComboboxCreateContext.Provider>
+  )
+}
+
+function ComboboxCreateAction() {
+  const { visible, label, creating, create } = React.use(ComboboxCreateContext)
+
+  if (!visible) return null
+
+  return (
+    <div className="border-t p-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="w-full justify-start"
+        disabled={creating}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={create}
+      >
+        <PlusIcon data-icon="inline-start" />
+        {creating ? "Agregando…" : `Agregar "${label}"`}
+      </Button>
+    </div>
+  )
+}
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />
@@ -89,6 +200,7 @@ function ComboboxContent({
   align = "start",
   alignOffset = 0,
   anchor,
+  children,
   ...props
 }: ComboboxPrimitive.Popup.Props &
   Pick<
@@ -110,7 +222,10 @@ function ComboboxContent({
           data-chips={!!anchor}
           className={cn("group/combobox-content relative max-h-(--available-height) w-(--anchor-width) max-w-(--available-width) min-w-[calc(var(--anchor-width)+--spacing(7))] origin-(--transform-origin) overflow-hidden rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-[chips=true]:min-w-(--anchor-width) data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 *:data-[slot=input-group]:m-1 *:data-[slot=input-group]:mb-0 *:data-[slot=input-group]:h-8 *:data-[slot=input-group]:border-input/30 *:data-[slot=input-group]:bg-input/30 *:data-[slot=input-group]:shadow-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className )}
           {...props}
-        />
+        >
+          {children}
+          <ComboboxCreateAction />
+        </ComboboxPrimitive.Popup>
       </ComboboxPrimitive.Positioner>
     </ComboboxPrimitive.Portal>
   )

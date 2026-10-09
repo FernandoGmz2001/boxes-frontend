@@ -55,7 +55,7 @@ export default function DataTablePagination<TData extends RowData>({
           </ComboboxContent>
         </Combobox>
       </Field>
-      <p className="text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         Página {pageCount === 0 ? 0 : pageIndex + 1} de {pageCount} ({rowCount})
       </p>
       <div className="flex items-center gap-2">

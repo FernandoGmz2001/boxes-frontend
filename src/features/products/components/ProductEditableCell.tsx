@@ -31,12 +31,14 @@ interface ProductEditableCellProps extends ProductRowEditHandlers {
   product: IGetProduct;
   field: ProductCellField;
   categories: IGetCategory[];
+  onCreateCategory: (nombre: string) => Promise<number>;
 }
 
 export default function ProductEditableCell({
   product,
   field,
   categories,
+  onCreateCategory,
   valuesFor,
   errorFor,
   setField,
@@ -84,13 +86,17 @@ export default function ProductEditableCell({
           value={selectedCategory}
           disabled={isSaving}
           isItemEqualToValue={(item, selected) => item.value === selected.value}
-          onValueChange={(category) =>
+          onCreate={async (nombre) => {
+            const categoryId = await onCreateCategory(nombre);
+            setField(product, "id_categoria", categoryId);
+          }}
+          onValueChange={(category) => {
             setField(
               product,
               "id_categoria",
               category == null ? 0 : Number(category.value),
-            )
-          }
+            );
+          }}
         >
           <ComboboxInput
             className="w-full min-w-36"

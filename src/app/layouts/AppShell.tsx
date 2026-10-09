@@ -12,11 +12,11 @@ export default function AppShell() {
     >
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden bg-background">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger />
           <AppBreadcrumb />
         </header>
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-1 flex-col bg-canvas">
           <Outlet />
         </div>
       </SidebarInset>

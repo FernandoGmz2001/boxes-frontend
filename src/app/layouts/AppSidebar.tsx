@@ -1,5 +1,5 @@
-import { BoxesIcon, LogOutIcon, PackageIcon } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router'
+import { BoxesIcon, LogOutIcon, PackageIcon } from "lucide-react";
+import { NavLink, useLocation } from "react-router";
 import {
   Sidebar,
   SidebarContent,
@@ -8,19 +8,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar.tsx'
-import { useAuth } from '@/shared/auth/useAuth.ts'
+} from "@/components/ui/sidebar.tsx";
+import { useAuth } from "@/shared/auth/useAuth.ts";
 
 const menuButtonClassName =
-  'h-10 rounded-xl px-2.5 font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary data-active:bg-primary/10 data-active:text-primary group-data-[collapsible=icon]:rounded-xl'
+  "h-10 rounded-xl px-2.5 font-medium text-muted-foreground hover:bg-accent hover:text-foreground data-active:bg-accent/40 data-active:text-primary data-active:dark:text-foreground data-active:dark:bg-foreground/4 group-data-[collapsible=icon]:rounded-xl";
 
 export default function AppSidebar() {
-  const { endSession } = useAuth()
-  const { pathname } = useLocation()
-  const productsActive = pathname === '/' || pathname.startsWith('/productos')
+  const { endSession } = useAuth();
+  const { pathname } = useLocation();
+  const productsActive = pathname === "/" || pathname.startsWith("/productos");
 
   return (
-    <Sidebar collapsible="icon" className="[&_[data-slot=sidebar-inner]]:bg-primary/[0.04]">
+    <Sidebar
+      collapsible="icon"
+      className="[&_[data-slot=sidebar-inner]]:bg-background"
+    >
       <SidebarHeader className="px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8">
           <BoxesIcon className="size-5" />
@@ -43,8 +46,14 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="gap-2 px-3 pt-2 pb-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-            <SidebarMenuButton tooltip="Cerrar sesión" className={menuButtonClassName} onClick={endSession}>
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center text-">
+            <SidebarMenuButton
+              tooltip="Cerrar sesión"
+              className={
+                "h-10 rounded-xl px-2.5 font-medium text-destructive hover:bg-red/50 hover:text-destructive data-active:bg-red/50 data-active:text-destructive group-data-[collapsible=icon]:rounded-xl"
+              }
+              onClick={endSession}
+            >
               <LogOutIcon />
               <span>Cerrar sesión</span>
             </SidebarMenuButton>
@@ -52,5 +61,5 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

@@ -1,5 +1,10 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontalIcon, PencilIcon } from "lucide-react";
+import {
+  DeleteIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  TrashIcon,
+} from "lucide-react";
 import { Link } from "react-router";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
 import { Button } from "@/components/ui/button.tsx";
@@ -19,6 +24,7 @@ import ProductImage from "./ProductImage.tsx";
 export interface ProductColumnHandlers extends ProductRowEditHandlers {
   categories: IGetCategory[];
   onDeactivate: (productId: number) => void;
+  onCreateCategory: (nombre: string) => Promise<number>;
 }
 
 const columnHelper = createColumnHelper<DataTableFeatures, IGetProduct>();
@@ -34,13 +40,21 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
       | "precio_venta"
       | "ganancia",
   ) => {
-    const { categories, valuesFor, errorFor, setField, isSaving } = handlers;
+    const {
+      categories,
+      onCreateCategory,
+      valuesFor,
+      errorFor,
+      setField,
+      isSaving,
+    } = handlers;
 
     return (
       <ProductEditableCell
         product={product}
         field={field}
         categories={categories}
+        onCreateCategory={onCreateCategory}
         valuesFor={valuesFor}
         errorFor={errorFor}
         setField={setField}
@@ -117,7 +131,8 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
                     disabled={!product.activo}
                     onClick={() => handlers.onDeactivate(product.id)}
                   >
-                    Dar de baja
+                    <TrashIcon />
+                    Eliminar
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>

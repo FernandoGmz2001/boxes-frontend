@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
-import { PackageIcon } from "lucide-react";
+import { PackageIcon, PlusIcon } from "lucide-react";
+import { Link } from "react-router";
 import { cn } from "cn";
 import { useTablePagination } from "@/components/features/DataTable/hooks/useTablePagination.ts";
+import SaveFooter from "@/components/features/SaveFooter/SaveFooter.tsx";
 import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
 import {
   AlertDialog,
@@ -23,18 +25,19 @@ import {
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { useGetCategories } from "@/features/categories/services/queries.ts";
 import ProductList from "../components/ProductList.tsx";
-import ProductSaveFooter from "../components/ProductSaveFooter.tsx";
 import ProductListSkeleton from "../components/Skeletons/ProductListSkeleton.tsx";
 import ProductToolbar from "../components/ProductToolbar.tsx";
 import { useProductRowEdit } from "../hooks/useProductRowEdit.ts";
 import { useDeactivateProduct, useGetProducts } from "../services/queries.ts";
+import { Button } from "@/components/ui/button.tsx";
 
 type ProductStatus = "all" | "active" | "inactive";
 
 export default function ProductsPage() {
   const { page, pageSize, setPage, setPageSize, resetPage } =
     useTablePagination();
-  const [status, setStatus] = useState<ProductStatus>("all");
+  const [status, setStatus] = useState<ProductStatus>("active");
+  const [searchQuery, setSearchQuery] = useState("");
   const [deactivateProductId, setDeactivateProductId] = useState<number | null>(
     null,
   );
@@ -43,6 +46,7 @@ export default function ProductsPage() {
     pagina: page,
     limite: pageSize,
     activo,
+    busqueda: searchQuery || undefined,
   });
   const categoriesQuery = useGetCategories({ pagina: 1, limite: 100 });
   const { valuesFor, errorFor, setField, dirtyCount, isSaving, save } =
@@ -72,11 +76,29 @@ export default function ProductsPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <main className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto p-6 lg:p-8">
+        <div className="flex justify-between items-start">
+          <div className="flex flex-col">
+            <h1 className="font-heading text-xl font-semibold tracking-tight">
+              Listado de productos
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Gestiona los productos de tu inventario.
+            </p>
+          </div>
+          <Button nativeButton={false} render={<Link to="/productos/nuevo" />}>
+            <PlusIcon data-icon="inline-start" />
+            Nuevo producto
+          </Button>
+        </div>
         <div className="flex items-center justify-end gap-2">
           <ProductToolbar
             status={status}
             totalLabel={String(total)}
             onStatusChange={handleStatusChange}
+            onSearchChange={(value) => {
+              resetPage();
+              setSearchQuery(value);
+            }}
           />
         </div>
         {productsQuery.isLoading ? <ProductListSkeleton /> : null}
@@ -152,14 +174,16 @@ export default function ProductsPage() {
                 {deactivateProduct.isPending ? (
                   <Spinner data-icon="inline-start" />
                 ) : null}
-                Dar de baja
+                Eliminar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </main>
-      <ProductSaveFooter
+      <SaveFooter
         dirtyCount={dirtyCount}
+        singularLabel="producto"
+        pluralLabel="productos"
         isSaving={isSaving}
         onSave={save}
       />

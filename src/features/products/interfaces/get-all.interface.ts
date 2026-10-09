@@ -3,6 +3,7 @@ import type { IGetProduct } from './get.interface.ts'
 
 export interface IGetAllProductsParams extends IPaginationParams {
   activo?: boolean
+  busqueda?: string
 }
 
 export type IGetAllProducts = IPage<IGetProduct>

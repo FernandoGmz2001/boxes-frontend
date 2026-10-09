@@ -11,7 +11,8 @@ export const QUERY_KEYS = {
   PRODUCTS: {
     ALL: ['products'] as const,
     LISTS: ['products', 'list'] as const,
-    LIST: (params: { pagina?: number; limite?: number; activo?: boolean }) => ['products', 'list', params] as const,
+    LIST: (params: { pagina?: number; limite?: number; activo?: boolean; busqueda?: string }) =>
+      ['products', 'list', params] as const,
     DETAIL: (productId: number) => ['products', 'detail', productId] as const,
   },
   PRODUCT_TAXES: {

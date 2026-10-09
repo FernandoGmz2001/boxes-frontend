@@ -17,8 +17,8 @@ interface BreadcrumbEntry {
 
 export default function AppBreadcrumb() {
   const { pathname } = useLocation()
-  const editMatch = matchPath({ path: '/productos/:productId', end: true }, pathname)
-  const productId = Number(editMatch?.params.productId)
+  const productEditMatch = matchPath({ path: '/productos/:productId', end: true }, pathname)
+  const productId = Number(productEditMatch?.params.productId)
   const isProductEdit = Number.isInteger(productId) && productId > 0
   const productQuery = useGetProduct(isProductEdit ? productId : 0)
   const entries = breadcrumbEntries(pathname, isProductEdit ? productQuery.data?.nombre_producto : undefined)
@@ -60,6 +60,10 @@ function breadcrumbEntries(pathname: string, productName: string | undefined): B
       { label: 'Productos', to: '/' },
       { label: productName ?? 'Editar producto' },
     ]
+  }
+
+  if (pathname.startsWith('/categorias')) {
+    return [{ label: 'Categorías' }]
   }
 
   return [{ label: 'Productos' }]

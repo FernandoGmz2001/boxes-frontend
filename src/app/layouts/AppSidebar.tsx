@@ -1,4 +1,4 @@
-import { BoxesIcon, LogOutIcon, PackageIcon } from "lucide-react";
+import { BoxesIcon, LogOutIcon, PackageIcon, TagsIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router";
 import {
   Sidebar,
@@ -18,6 +18,7 @@ export default function AppSidebar() {
   const { endSession } = useAuth();
   const { pathname } = useLocation();
   const productsActive = pathname === "/" || pathname.startsWith("/productos");
+  const categoriesActive = pathname.startsWith("/categorias");
 
   return (
     <Sidebar
@@ -40,6 +41,17 @@ export default function AppSidebar() {
             >
               <PackageIcon />
               <span>Productos</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+            <SidebarMenuButton
+              isActive={categoriesActive}
+              tooltip="Categorías"
+              className={menuButtonClassName}
+              render={<NavLink to="/categorias" />}
+            >
+              <TagsIcon />
+              <span>Categorías</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

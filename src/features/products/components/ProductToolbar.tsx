@@ -42,7 +42,11 @@ export default function ProductToolbar({
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
-      <SearchInput label="Buscar productos" onDebouncedChange={onSearchChange} />
+      <SearchInput
+        label="Buscar productos"
+        placeholder="Nombre o SKU"
+        onDebouncedChange={onSearchChange}
+      />
     </div>
   );
 }

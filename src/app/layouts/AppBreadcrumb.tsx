@@ -48,6 +48,10 @@ export default function AppBreadcrumb() {
 }
 
 function breadcrumbEntries(pathname: string, productName: string | undefined): BreadcrumbEntry[] {
+  if (pathname === '/movimientos') {
+    return [{ label: 'Movimientos' }]
+  }
+
   if (pathname === '/productos/nuevo') {
     return [
       { label: 'Productos', to: '/' },
@@ -60,10 +64,6 @@ function breadcrumbEntries(pathname: string, productName: string | undefined): B
       { label: 'Productos', to: '/' },
       { label: productName ?? 'Editar producto' },
     ]
-  }
-
-  if (pathname.startsWith('/categorias')) {
-    return [{ label: 'Categorías' }]
   }
 
   return [{ label: 'Productos' }]

@@ -8,34 +8,11 @@ import { useCreateCategory, useUpdateCategory } from '../services/queries.ts'
 
 const emptyValues: CategorySchema = {
   nombre: '',
-  color_ui: '',
 }
 
-function toFormValues(category: IGetCategory): CategorySchema {
-  return {
-    nombre: category.nombre,
-    color_ui: category.color_ui ?? '',
-  }
-}
-
-function colorOrEmpty(value: string) {
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : null
-}
-
-function buildCreatePayload(values: CategorySchema): ICreateCategory {
-  const color = colorOrEmpty(values.color_ui)
-
+function buildPayload(values: CategorySchema): ICreateCategory & IUpdateCategory {
   return {
     nombre: values.nombre,
-    ...(color ? { color_ui: color } : {}),
-  }
-}
-
-function buildUpdatePayload(values: CategorySchema): IUpdateCategory {
-  return {
-    nombre: values.nombre,
-    color_ui: colorOrEmpty(values.color_ui),
   }
 }
 
@@ -45,16 +22,19 @@ export function useCategoryForm(category: IGetCategory | null, onSaved: () => vo
 
   const form = useForm<CategorySchema>({
     resolver: zodResolver(categorySchema),
-    defaultValues: category ? toFormValues(category) : emptyValues,
+    defaultValues: emptyValues,
   })
 
   const onSubmit = form.handleSubmit(async (values) => {
+    const payload = buildPayload(values)
+
     if (category) {
-      await updateCategory({ categoryId: category.id, payload: buildUpdatePayload(values) })
+      await updateCategory({ categoryId: category.id, payload })
     } else {
-      await createCategory(buildCreatePayload(values))
+      await createCategory(payload)
     }
 
+    form.reset(emptyValues)
     onSaved()
   })
 

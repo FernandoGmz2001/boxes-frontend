@@ -48,7 +48,7 @@ export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormPro
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="Correo"
+                placeholder="p. ej. ana@negocio.com"
                 aria-invalid={errors.email ? true : undefined}
                 aria-describedby={errors.email ? 'email-error' : undefined}
                 className={fieldClassName}
@@ -68,7 +68,7 @@ export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormPro
                 id="password"
                 type={passwordVisible ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="Contraseña"
+                placeholder="p. ej. MiClave123"
                 aria-invalid={errors.password ? true : undefined}
                 aria-describedby={errors.password ? 'password-error' : undefined}
                 className={`${fieldClassName} pr-10`}

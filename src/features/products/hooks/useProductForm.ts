@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, type DefaultValues } from 'react-hook-form'
 import type { ICreateProduct } from '../interfaces/create.interface.ts'
 import type { IGetProduct } from '../interfaces/get.interface.ts'
 import type { IUpdateProduct } from '../interfaces/update.interface.ts'
@@ -7,15 +7,11 @@ import { productSchema } from '../schemas/upsert.schema.ts'
 import type { ProductSchema } from '../schemas/upsert.schema.ts'
 import { useCreateProduct, useUpdateProduct } from '../services/queries.ts'
 
-const emptyValues: ProductSchema = {
+const emptyValues: DefaultValues<ProductSchema> = {
   nombre_producto: '',
   imagen_url: '',
-  cantidad_en_existencia: 0,
-  stock_minimo: 0,
   sku: '',
   codigo_barras: '',
-  precio_venta: 0,
-  costo_compra: 0,
   es_servicio: false,
   activo: true,
   id_categoria: 0,

@@ -20,6 +20,9 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "src"),
     },
   },
+  optimizeDeps: {
+    exclude: ["exceljs"],
+  },
   server: {
     proxy: {
       "/auth": apiProxy,

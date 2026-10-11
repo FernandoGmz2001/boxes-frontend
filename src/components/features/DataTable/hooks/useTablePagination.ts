@@ -3,9 +3,9 @@ import { useEffect, useEffectEvent, useState } from 'react'
 const DEFAULT_PAGE = 1
 const DEFAULT_PAGE_SIZE = 10
 
-export function useTablePagination() {
+export function useTablePagination(initialPageSize = DEFAULT_PAGE_SIZE) {
   const [page, setPage] = useState(DEFAULT_PAGE)
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const [pageSize, setPageSize] = useState(initialPageSize)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 

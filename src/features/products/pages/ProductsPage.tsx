@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import { PackageIcon, PlusIcon } from "lucide-react";
+import { FileSpreadsheetIcon, PackageIcon, PlusIcon, TagsIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "cn";
 import { useTablePagination } from "@/components/features/DataTable/hooks/useTablePagination.ts";
+import ListHeader from "@/components/features/ListHeader/ListHeader.tsx";
 import SaveFooter from "@/components/features/SaveFooter/SaveFooter.tsx";
 import { Alert, AlertDescription } from "@/components/ui/alert.tsx";
 import {
@@ -23,7 +24,9 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
+import CategoryDrawer from "@/features/categories/components/CategoryDrawer.tsx";
 import { useGetCategories } from "@/features/categories/services/queries.ts";
+import ProductImportDialog from "../components/ProductImportDialog.tsx";
 import ProductList from "../components/ProductList.tsx";
 import ProductListSkeleton from "../components/Skeletons/ProductListSkeleton.tsx";
 import ProductToolbar from "../components/ProductToolbar.tsx";
@@ -41,6 +44,8 @@ export default function ProductsPage() {
   const [deactivateProductId, setDeactivateProductId] = useState<number | null>(
     null,
   );
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const activo = status === "all" ? undefined : status === "active";
   const productsQuery = useGetProducts({
     pagina: page,
@@ -74,22 +79,33 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <main className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto p-6 lg:p-8">
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col">
-            <h1 className="font-heading text-xl font-semibold tracking-tight">
-              Listado de productos
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Gestiona los productos de tu inventario.
-            </p>
-          </div>
+    <div className="flex min-h-0 flex-1 flex-col">œ
+      <main className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto p-4">
+        <ListHeader
+          title="Listado de productos"
+          subtitle="Gestiona los productos de tu inventario."
+        >
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setCategoriesOpen(true)}
+          >
+            <TagsIcon data-icon="inline-start" />
+            Categorías
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setImportOpen(true)}
+          >
+            <FileSpreadsheetIcon data-icon="inline-start" />
+            Importar Excel
+          </Button>
           <Button nativeButton={false} render={<Link to="/productos/nuevo" />}>
             <PlusIcon data-icon="inline-start" />
             Nuevo producto
           </Button>
-        </div>
+        </ListHeader>
         <div className="flex items-center justify-end gap-2">
           <ProductToolbar
             status={status}
@@ -179,6 +195,8 @@ export default function ProductsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        <CategoryDrawer open={categoriesOpen} onOpenChange={setCategoriesOpen} />
+        <ProductImportDialog open={importOpen} onOpenChange={setImportOpen} />
       </main>
       <SaveFooter
         dirtyCount={dirtyCount}

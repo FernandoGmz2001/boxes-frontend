@@ -38,7 +38,7 @@ export default function SaveFooter({
 
   return (
     <footer className="bg-canvas">
-      <div className="flex items-center justify-end gap-3 px-6 py-3">
+      <div className="flex items-center justify-end gap-3 px-4 py-3">
         {showsPendingCount && dirtyCount > 0 ? (
           <p className="text-muted-foreground text-sm">
             {pendingChangesLabel(dirtyCount, singularLabel, pluralLabel)}

@@ -103,7 +103,7 @@ export default function ProductEditableCell({
             disabled={isSaving}
             aria-invalid={invalid}
             aria-label="Categoría"
-            placeholder="Categoría"
+            placeholder="p. ej. Bebidas"
           />
           <ComboboxContent>
             <ComboboxEmpty>No hay categorías.</ComboboxEmpty>
@@ -131,6 +131,7 @@ export default function ProductEditableCell({
             disabled={isSaving}
             aria-invalid={invalid}
             aria-label="Costo de compra"
+            placeholder="p. ej. 12.50"
             value={values.costo_compra}
             onChange={(event) =>
               setField(product, "costo_compra", event.target.value)
@@ -152,6 +153,7 @@ export default function ProductEditableCell({
             disabled={isSaving}
             aria-invalid={invalid}
             aria-label="Precio de venta"
+            placeholder="p. ej. 25.00"
             value={values.precio_venta}
             onChange={(event) =>
               setField(product, "precio_venta", event.target.value)
@@ -171,6 +173,7 @@ export default function ProductEditableCell({
           disabled={isSaving}
           aria-invalid={invalid}
           aria-label="Existencia"
+          placeholder="p. ej. 24"
           value={values.cantidad_en_existencia}
           onChange={(event) =>
             setField(product, "cantidad_en_existencia", event.target.value)
@@ -190,6 +193,7 @@ export default function ProductEditableCell({
           disabled={isSaving}
           aria-invalid={invalid}
           aria-label="Stock"
+          placeholder="p. ej. 5"
           value={values.stock_minimo}
           onChange={(event) =>
             setField(product, "stock_minimo", event.target.value)
@@ -207,6 +211,7 @@ export default function ProductEditableCell({
         disabled={isSaving}
         aria-invalid={invalid}
         aria-label="Nombre del producto"
+        placeholder="p. ej. Coca-Cola 600 ml"
         value={values.nombre_producto}
         onChange={(event) =>
           setField(product, "nombre_producto", event.target.value)

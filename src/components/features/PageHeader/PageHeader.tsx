@@ -22,7 +22,7 @@ export default function PageHeader({
   const showBack = back || onBack != null;
 
   return (
-    <header className="flex flex-col px-4 gap-2">
+    <header className="flex flex-col gap-2">
       <div className="px-2">
         {showBack ? (
           <Button

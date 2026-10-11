@@ -178,7 +178,7 @@ export default function ProductImageField({
         <Input
           id="imagen_url"
           type="url"
-          placeholder="https://…"
+          placeholder="p. ej. https://tienda.com/coca-cola.jpg"
           value={urlText}
           aria-invalid={invalid ? true : undefined}
           onBlur={onBlur}

@@ -20,6 +20,7 @@ import {
 import { useGetTaxes } from "@/features/taxes/services/queries.ts";
 import { useProductForm } from "../hooks/useProductForm.ts";
 import type { IGetProduct } from "../interfaces/get.interface.ts";
+import ProductFiscalFields from "./ProductFiscalFields.tsx";
 import ProductImageField from "./ProductImageField.tsx";
 
 interface ProductFormProps {
@@ -55,7 +56,7 @@ export default function ProductForm({
         onSubmit={onSubmit}
         noValidate
       >
-        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto px-4 py-6 md:px-6">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto p-4">
           {embedded ? null : (
             <PageHeader
               title={isEditing ? "Editar producto" : "Nuevo producto"}
@@ -92,6 +93,7 @@ export default function ProductForm({
                   name="nombre_producto"
                   label="Nombre del producto"
                   required
+                  placeholder="p. ej. Coca-Cola 600 ml"
                 />
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -102,6 +104,7 @@ export default function ProductForm({
                     prefix="$"
                     min={0}
                     step="0.01"
+                    placeholder="p. ej. 25.00"
                   />
                   <FormNumberField
                     name="costo_compra"
@@ -110,6 +113,7 @@ export default function ProductForm({
                     prefix="$"
                     min={0}
                     step="0.01"
+                    placeholder="p. ej. 12.50"
                   />
                 </div>
 
@@ -120,6 +124,7 @@ export default function ProductForm({
                     required
                     min={0}
                     step={1}
+                    placeholder="p. ej. 24"
                     disabled={isEditing}
                     description={
                       isEditing ? "Cambia con un movimiento." : undefined
@@ -131,6 +136,7 @@ export default function ProductForm({
                     required
                     min={0}
                     step={1}
+                    placeholder="p. ej. 5"
                     description="Aviso cuando queden estas unidades o menos."
                   />
                 </div>
@@ -140,7 +146,7 @@ export default function ProductForm({
                   label="Categoría"
                   required
                   options={categoryItems}
-                  placeholder="Selecciona una categoría"
+                  placeholder="p. ej. Bebidas"
                   emptyValue={0}
                   valueAsNumber
                   onCreate={async (nombre) => {
@@ -169,11 +175,15 @@ export default function ProductForm({
                   <CardTitle>Más detalles</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                  <FormTextField name="sku" label="SKU" />
+                  <FormTextField
+                    name="sku"
+                    label="SKU"
+                    placeholder="p. ej. COC-600"
+                  />
                   <FormTextField
                     name="codigo_barras"
                     label="Código"
-                    placeholder="Escanea o escribe el código del producto"
+                    placeholder="p. ej. 7501234567890"
                   />
                   <FormCheckboxGroupField
                     name="impuesto_preset_ids"
@@ -192,20 +202,7 @@ export default function ProductForm({
                   <CardTitle>Datos fiscales</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                  <FormTextField
-                    name="clave_producto_servicio"
-                    label="Clave producto"
-                  />
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <FormTextField
-                      name="clave_unidad_medida"
-                      label="Clave unidad"
-                    />
-                    <FormTextField
-                      name="objeto_impuesto"
-                      label="Objeto de impuesto"
-                    />
-                  </div>
+                  <ProductFiscalFields />
                   <FormCheckboxField
                     name="activo"
                     label="Activo en el inventario"

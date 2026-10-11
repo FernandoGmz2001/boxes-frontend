@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Controller } from "react-hook-form";
 import {
   Combobox,
@@ -30,6 +30,7 @@ interface FormComboboxFieldProps {
   id?: string;
   footer?: ReactNode;
   onCreate?: (label: string) => void | Promise<string | number | void>;
+  onQueryChange?: (query: string) => void;
 }
 
 function toSelectValue(value: unknown, emptyValue: unknown) {
@@ -72,12 +73,32 @@ export default function FormComboboxField({
   id,
   footer,
   onCreate,
+  onQueryChange,
 }: FormComboboxFieldProps) {
   const fieldId = id ?? name;
   const [pendingOption, setPendingOption] =
     useState<FormComboboxOption | null>(null);
+  const [query, setQuery] = useState<string | null>(null);
   const { control, error, invalid } = useFormField(name);
   const items = withPendingOption(options, pendingOption);
+  const publishQuery = useEffectEvent((nextQuery: string) => {
+    onQueryChange?.(nextQuery);
+  });
+
+  const handleInputValueChange = (inputValue: string) => {
+    if (!onQueryChange) return;
+    setQuery(inputValue.trim());
+  };
+
+  useEffect(() => {
+    if (query == null) return;
+
+    const timeoutId = window.setTimeout(() => {
+      publishQuery(query);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [query]);
 
   return (
     <Controller
@@ -116,7 +137,9 @@ export default function FormComboboxField({
               isItemEqualToValue={(item, current) =>
                 item.value === current.value
               }
+              filter={onQueryChange ? null : undefined}
               onCreate={onCreate ? handleCreate : undefined}
+              onInputValueChange={handleInputValueChange}
               onValueChange={(option) => {
                 field.onChange(
                   toFieldValue(

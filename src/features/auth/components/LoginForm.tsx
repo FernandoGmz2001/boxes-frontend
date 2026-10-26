@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { EyeIcon, EyeOffIcon, LockIcon, LogInIcon, MailIcon } from 'lucide-react'
+import { BoxesIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button.tsx'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field.tsx'
 import { Input } from '@/components/ui/input.tsx'
@@ -13,8 +13,7 @@ interface LoginFormProps {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
 }
 
-const fieldClassName =
-  'h-11 rounded-xl border-transparent bg-muted pr-3 pl-10 shadow-none placeholder:text-muted-foreground'
+const fieldClassName = 'h-11 rounded-xl bg-background px-3.5 shadow-xs placeholder:text-muted-foreground/70'
 
 export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormProps) {
   const [passwordVisible, setPasswordVisible] = useState(false)
@@ -24,51 +23,41 @@ export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormPro
   } = form
 
   return (
-    <section className="w-full max-w-[400px] rounded-[28px] border border-border bg-card px-6 pt-8 pb-6 text-card-foreground shadow-xl sm:px-7">
-      <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        <LogInIcon className="size-5" />
-      </div>
+    <section className="w-full max-w-[380px] text-card-foreground">
+      <span className="mb-6 flex size-10 items-center justify-center rounded-2xl bg-linear-to-br from-neutral-600 to-neutral-950 text-white shadow-lg shadow-neutral-950/25 md:hidden">
+        <BoxesIcon className="size-5" />
+      </span>
 
-      <div className="mt-5 text-center">
-        <h1 className="text-lg font-semibold tracking-tight">Inicia sesión con tu correo</h1>
-        <p className="mx-auto mt-1.5 max-w-[18rem] text-sm leading-relaxed text-muted-foreground">
-          Entra al punto de venta para cobrar y llevar el inventario del turno.
-        </p>
-      </div>
+      <h1 className="font-heading text-3xl font-semibold tracking-tight">Inicia sesión</h1>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        Entra al punto de venta para cobrar y llevar el inventario del turno.
+      </p>
 
-      <form className="mt-6" onSubmit={onSubmit} noValidate>
-        <FieldGroup className="gap-3">
+      <form className="mt-8" onSubmit={onSubmit} noValidate>
+        <FieldGroup className="gap-4">
           <Field data-invalid={errors.email ? true : undefined}>
-            <FieldLabel htmlFor="email" className="sr-only">
-              Correo
-            </FieldLabel>
-            <div className="relative">
-              <MailIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="email"
-                type="email"
-                autoComplete="email"
-                placeholder="p. ej. ana@negocio.com"
-                aria-invalid={errors.email ? true : undefined}
-                aria-describedby={errors.email ? 'email-error' : undefined}
-                className={fieldClassName}
-                {...register('email')}
-              />
-            </div>
+            <FieldLabel htmlFor="email">Correo</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="p. ej. ana@negocio.com"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              className={fieldClassName}
+              {...register('email')}
+            />
             <FieldError id="email-error" errors={[errors.email]} />
           </Field>
 
           <Field data-invalid={errors.password ? true : undefined}>
-            <FieldLabel htmlFor="password" className="sr-only">
-              Contraseña
-            </FieldLabel>
+            <FieldLabel htmlFor="password">Contraseña</FieldLabel>
             <div className="relative">
-              <LockIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="password"
                 type={passwordVisible ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="p. ej. MiClave123"
+                placeholder="Tu contraseña"
                 aria-invalid={errors.password ? true : undefined}
                 aria-describedby={errors.password ? 'password-error' : undefined}
                 className={`${fieldClassName} pr-10`}
@@ -84,14 +73,13 @@ export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormPro
                 {passwordVisible ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
               </button>
             </div>
-            <p className="text-right text-xs text-muted-foreground">¿Olvidaste tu contraseña?</p>
             <FieldError id="password-error" errors={[errors.password]} />
           </Field>
 
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 h-11 w-full rounded-xl"
+            className="mt-2 h-11 w-full rounded-xl shadow-lg shadow-foreground/20"
           >
             {isSubmitting ? <Spinner data-icon="inline-start" /> : null}
             {isSubmitting ? 'Entrando…' : 'Entrar'}
@@ -99,17 +87,13 @@ export default function LoginForm({ form, isSubmitting, onSubmit }: LoginFormPro
         </FieldGroup>
       </form>
 
-      <div className="mt-5 flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        O entra con
-        <span className="h-px flex-1 bg-border" />
+      <div className="mt-6 flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-linear-to-r from-transparent to-border" />
+        o continúa con
+        <span className="h-px flex-1 bg-linear-to-l from-transparent to-border" />
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="mt-4 h-11 w-full rounded-xl bg-background"
-      >
+      <Button type="button" variant="outline" className="mt-4 h-11 w-full rounded-xl bg-muted/60">
         <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
           <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z" />
           <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1A12 12 0 0 0 12 24Z" />

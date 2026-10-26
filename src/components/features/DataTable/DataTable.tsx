@@ -1,11 +1,19 @@
-import { useTable, type ColumnDef, type OnChangeFn, type PaginationState, type RowData } from '@tanstack/react-table'
+import {
+  useTable,
+  type ColumnDef,
+  type OnChangeFn,
+  type PaginationState,
+  type RowData,
+  type RowSelectionState,
+} from '@tanstack/react-table'
 import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator.tsx'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.tsx'
 import DataTablePagination from './DataTablePagination.tsx'
 import { features, type DataTableFeatures } from './data-table-features.ts'
 
-const ROW_CONTROL_SELECTOR = 'input, textarea, select, button, a, [role="combobox"], [role="listbox"], [role="menu"]'
+const ROW_CONTROL_SELECTOR =
+  'input, textarea, select, button, a, [role="combobox"], [role="listbox"], [role="menu"], [role="checkbox"]'
 
 function isRowControlTarget(target: EventTarget | null) {
   return target instanceof Element && target.closest(ROW_CONTROL_SELECTOR) !== null
@@ -21,6 +29,9 @@ interface DataTableProps<TData extends RowData> {
   onPageChange: (page: number) => void
   onPageSizeChange: (pageSize: number) => void
   onRowDoubleClick?: (row: TData) => void
+  getRowId?: (row: TData, index: number) => string
+  rowSelection?: RowSelectionState
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>
 }
 
 export default function DataTable<TData extends RowData>({
@@ -33,6 +44,9 @@ export default function DataTable<TData extends RowData>({
   onPageChange,
   onPageSizeChange,
   onRowDoubleClick,
+  getRowId,
+  rowSelection,
+  onRowSelectionChange,
 }: DataTableProps<TData>) {
   const pagination: PaginationState = {
     pageIndex: Math.max(page - 1, 0),
@@ -60,8 +74,10 @@ export default function DataTable<TData extends RowData>({
     autoResetPageIndex: false,
     pageCount: totalPages,
     rowCount: total,
-    state: { pagination },
+    getRowId,
+    state: rowSelection ? { pagination, rowSelection } : { pagination },
     onPaginationChange: handlePaginationChange,
+    onRowSelectionChange,
   })
 
   return (
@@ -83,6 +99,7 @@ export default function DataTable<TData extends RowData>({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
+                data-state={row.getIsSelected() ? 'selected' : undefined}
                 className={cn(onRowDoubleClick && 'cursor-pointer')}
                 onDoubleClick={
                   onRowDoubleClick

@@ -1,13 +1,9 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import {
-  DeleteIcon,
-  MoreHorizontalIcon,
-  PencilIcon,
-  TrashIcon,
-} from "lucide-react";
+import { MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
 import { Link } from "react-router";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
 import { Button } from "@/components/ui/button.tsx";
+import { Checkbox } from "@/components/ui/checkbox.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,6 +60,31 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
   };
 
   return columnHelper.columns([
+    columnHelper.display({
+      id: "select",
+      header: ({ table }) => {
+        const isAllSelected = table.getIsAllPageRowsSelected();
+
+        return (
+          <Checkbox
+            aria-label="Seleccionar todos"
+            checked={isAllSelected}
+            indeterminate={!isAllSelected && table.getIsSomePageRowsSelected()}
+            onCheckedChange={(checked) =>
+              table.toggleAllPageRowsSelected(checked)
+            }
+          />
+        );
+      },
+      cell: ({ row }) => (
+        <Checkbox
+          aria-label="Seleccionar producto"
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onCheckedChange={(checked) => row.toggleSelected(checked)}
+        />
+      ),
+    }),
     columnHelper.accessor("nombre_producto", {
       header: "Producto",
       cell: ({ row }) => {

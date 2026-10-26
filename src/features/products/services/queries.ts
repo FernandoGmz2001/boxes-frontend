@@ -6,6 +6,7 @@ import type { IUpdateProduct } from '../interfaces/update.interface.ts'
 import {
   createProduct,
   deactivateProduct,
+  deactivateProducts,
   getProduct,
   getProductTemplate,
   getProducts,
@@ -82,6 +83,21 @@ export function useDeactivateProduct() {
     onError: (error) => handleMutationError(error, 'No se pudo dar de baja el producto'),
     onSuccess: async (product) => {
       queryClient.setQueryData(QUERY_KEYS.PRODUCTS.DETAIL(product.id), product)
+      await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LISTS })
+    },
+  })
+}
+
+export function useDeactivateProducts() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: deactivateProducts,
+    onError: (error) => handleMutationError(error, 'No se pudieron dar de baja los productos'),
+    onSuccess: async (products) => {
+      for (const product of products) {
+        queryClient.setQueryData(QUERY_KEYS.PRODUCTS.DETAIL(product.id), product)
+      }
       await queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LISTS })
     },
   })

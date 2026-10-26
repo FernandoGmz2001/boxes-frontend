@@ -1,5 +1,11 @@
 import { useCallback, useState } from "react";
-import { FileSpreadsheetIcon, PackageIcon, PlusIcon, TagsIcon } from "lucide-react";
+import type { RowSelectionState } from "@tanstack/react-table";
+import {
+  FileSpreadsheetIcon,
+  PackageIcon,
+  PlusIcon,
+  TagsIcon,
+} from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "cn";
 import { useTablePagination } from "@/components/features/DataTable/hooks/useTablePagination.ts";
@@ -26,8 +32,10 @@ import {
 import { Spinner } from "@/components/ui/spinner.tsx";
 import CategoryDrawer from "@/features/categories/components/CategoryDrawer.tsx";
 import { useGetCategories } from "@/features/categories/services/queries.ts";
+import ProductBulkDeactivateDialog from "../components/ProductBulkDeactivateDialog.tsx";
 import ProductImportDialog from "../components/ProductImportDialog.tsx";
 import ProductList from "../components/ProductList.tsx";
+import ProductSelectionBar from "../components/ProductSelectionBar.tsx";
 import ProductListSkeleton from "../components/Skeletons/ProductListSkeleton.tsx";
 import ProductToolbar from "../components/ProductToolbar.tsx";
 import { useProductRowEdit } from "../hooks/useProductRowEdit.ts";
@@ -46,6 +54,9 @@ export default function ProductsPage() {
   );
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkDeactivateOpen, setBulkDeactivateOpen] = useState(false);
+  const selectedProductIds = Object.keys(rowSelection).map(Number);
   const activo = status === "all" ? undefined : status === "active";
   const productsQuery = useGetProducts({
     pagina: page,
@@ -79,7 +90,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">œ
+    <div className="flex min-h-0 flex-1 flex-col">
       <main className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto p-4">
         <ListHeader
           title="Listado de productos"
@@ -161,6 +172,8 @@ export default function ProductsPage() {
               setField={setField}
               isSaving={isSaving}
               onDeactivate={askDeactivate}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
             />
           </div>
         ) : null}
@@ -195,9 +208,23 @@ export default function ProductsPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        <CategoryDrawer open={categoriesOpen} onOpenChange={setCategoriesOpen} />
+        <ProductBulkDeactivateDialog
+          productIds={selectedProductIds}
+          open={bulkDeactivateOpen}
+          onOpenChange={setBulkDeactivateOpen}
+          onDeactivated={() => setRowSelection({})}
+        />
+        <CategoryDrawer
+          open={categoriesOpen}
+          onOpenChange={setCategoriesOpen}
+        />
         <ProductImportDialog open={importOpen} onOpenChange={setImportOpen} />
       </main>
+      <ProductSelectionBar
+        selectedCount={selectedProductIds.length}
+        onClearSelection={() => setRowSelection({})}
+        onDeleteSelected={() => setBulkDeactivateOpen(true)}
+      />
       <SaveFooter
         dirtyCount={dirtyCount}
         singularLabel="producto"

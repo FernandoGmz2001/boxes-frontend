@@ -2,6 +2,7 @@ import axios from 'axios'
 import { api } from '@/shared/api/client.ts'
 import { handleApiError } from '@/shared/helpers/api-error.ts'
 import type { ICreateProduct } from '../interfaces/create.interface.ts'
+import type { IDeactivateProducts } from '../interfaces/deactivate-many.interface.ts'
 import type { IGetAllProducts, IGetAllProductsParams } from '../interfaces/get-all.interface.ts'
 import type { IGetProduct } from '../interfaces/get.interface.ts'
 import type { IImportProducts } from '../interfaces/import.interface.ts'
@@ -63,6 +64,11 @@ export async function updateProduct(productId: number, payload: IUpdateProduct) 
 
 export async function deactivateProduct(productId: number) {
   const response = await api.delete<IGetProduct>(`/productos/${productId}`)
+  return response.data
+}
+
+export async function deactivateProducts(payload: IDeactivateProducts) {
+  const response = await api.delete<IGetProduct[]>('/productos', { data: payload })
   return response.data
 }
 

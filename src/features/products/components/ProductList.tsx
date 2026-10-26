@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import type { OnChangeFn, RowSelectionState } from "@tanstack/react-table";
 import { useNavigate } from "react-router";
 import DataTable from "@/components/features/DataTable/DataTable.tsx";
 import { Card } from "@/components/ui/card.tsx";
@@ -18,6 +19,8 @@ interface ProductListProps extends ProductRowEditHandlers {
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   onDeactivate: (productId: number) => void;
+  rowSelection: RowSelectionState;
+  onRowSelectionChange: OnChangeFn<RowSelectionState>;
 }
 
 export default function ProductList({
@@ -34,6 +37,8 @@ export default function ProductList({
   errorFor,
   setField,
   isSaving,
+  rowSelection,
+  onRowSelectionChange,
 }: ProductListProps) {
   const navigate = useNavigate();
   const { mutateAsync: createCategory } = useCreateCategory();
@@ -87,6 +92,9 @@ export default function ProductList({
       <DataTable
         columns={columns}
         data={products}
+        getRowId={(product) => String(product.id)}
+        rowSelection={rowSelection}
+        onRowSelectionChange={onRowSelectionChange}
         page={page}
         pageSize={pageSize}
         total={total}

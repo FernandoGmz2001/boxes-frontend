@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { readSession } from '@/shared/auth/session.ts'
+import { clearSession, readSession, SESSION_EXPIRED_EVENT } from '@/shared/auth/session.ts'
 
 const apiUrl = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
@@ -18,4 +18,16 @@ api.interceptors.request.use((config) => {
   }
 
   return config
+})
+
+api.interceptors.response.use(undefined, (error: unknown) => {
+  const isExpiredSession =
+    axios.isAxiosError(error) && error.response?.status === 401 && error.config?.url !== '/auth/login'
+
+  if (isExpiredSession && readSession()) {
+    clearSession()
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+  }
+
+  return Promise.reject(error)
 })

@@ -1,5 +1,7 @@
 const SESSION_STORAGE_KEY = 'boxes.auth.session.v1'
 
+export const SESSION_EXPIRED_EVENT = 'boxes:session-expired'
+
 export interface IAuthSession {
   accessToken: string
   userId: number

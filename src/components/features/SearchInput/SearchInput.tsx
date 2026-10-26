@@ -1,8 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
-import { SearchIcon } from "lucide-react";
 import { cn } from "cn";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group.tsx";
-import { Kbd, KbdGroup } from "@/components/ui/kbd.tsx";
+import { getShortcutModifierLabel, isCommandKShortcut } from "@/shared/helpers/keyboard-shortcuts.ts";
+import SearchField from "./SearchField.tsx";
 
 const DEFAULT_DELAY = 300;
 
@@ -12,22 +11,6 @@ interface SearchInputProps {
   placeholder?: string;
   label?: string;
   className?: string;
-}
-
-function shortcutModifier() {
-  if (typeof navigator === "undefined") return "Ctrl";
-  return /Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘" : "Ctrl";
-}
-
-function isSearchShortcut(event: KeyboardEvent) {
-  return (
-    event.code === "KeyK" &&
-    !event.repeat &&
-    !event.altKey &&
-    !event.shiftKey &&
-    (event.ctrlKey || event.metaKey) &&
-    !(event.ctrlKey && event.metaKey)
-  );
 }
 
 export default function SearchInput({
@@ -64,34 +47,29 @@ export default function SearchInput({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || !isSearchShortcut(event)) return;
+      if (event.defaultPrevented || !isCommandKShortcut(event)) return;
 
       event.preventDefault();
       focusSearch();
     };
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    // Fase de captura: el buscador de la página tiene prioridad sobre el del sidebar en ⌘K.
+    window.addEventListener("keydown", onKeyDown, { capture: true });
+    return () => window.removeEventListener("keydown", onKeyDown, { capture: true });
   }, []);
 
   return (
-    <InputGroup className={cn("h-10 w-full max-w-sm", className)}>
-      <InputGroupAddon>
-        <SearchIcon />
-      </InputGroupAddon>
-      <InputGroupInput
-        ref={searchInputRef}
-        value={query}
-        placeholder={placeholder}
-        aria-label={label}
-        onChange={(event) => setQuery(event.target.value)}
-      />
-      <InputGroupAddon align="inline-end">
-        <KbdGroup>
-          <Kbd>{shortcutModifier()}</Kbd>
-          <Kbd>K</Kbd>
-        </KbdGroup>
-      </InputGroupAddon>
-    </InputGroup>
+    <SearchField
+      ref={searchInputRef}
+      value={query}
+      placeholder={placeholder}
+      aria-label={label}
+      shortcutKeys={[`${getShortcutModifierLabel()}K`]}
+      className={cn("w-full max-w-sm", className)}
+      onChange={(event) => setQuery(event.target.value)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setQuery("");
+      }}
+    />
   );
 }

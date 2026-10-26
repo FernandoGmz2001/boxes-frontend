@@ -1,69 +1,94 @@
-import { BoxesIcon, HistoryIcon, LogOutIcon, PackageIcon } from "lucide-react";
+import { cn } from "cn";
+import { BoxesIcon, LogOutIcon } from "lucide-react";
 import { NavLink, useLocation } from "react-router";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
+  SidebarTrigger,
 } from "@/components/ui/sidebar.tsx";
 import { useAuth } from "@/shared/auth/useAuth.ts";
+import AppSidebarSearch from "./AppSidebarSearch.tsx";
+import { useSidebarSearch } from "./hooks/useSidebarSearch.ts";
 
 const menuButtonClassName =
-  "h-10 rounded-xl px-2.5 font-medium text-muted-foreground hover:bg-accent hover:text-foreground data-active:bg-accent/40 data-active:text-primary data-active:dark:text-foreground data-active:dark:bg-foreground/4 group-data-[collapsible=icon]:rounded-xl";
+  "h-10 gap-3 rounded-xl px-3 text-[0.9375rem] font-normal text-sidebar-foreground/80 hover:bg-sidebar-accent/70 hover:text-sidebar-foreground data-active:bg-background data-active:font-medium data-active:text-sidebar-foreground data-active:shadow-[0_1px_2px_rgb(0_0_0/0.06)] data-active:ring-1 data-active:ring-sidebar-border dark:data-active:bg-sidebar-accent [&_svg]:size-[1.125rem] [&_svg]:text-sidebar-foreground/60 data-active:[&_svg]:text-sidebar-foreground group-data-[collapsible=icon]:rounded-xl";
 
 export default function AppSidebar() {
   const { endSession } = useAuth();
   const { pathname } = useLocation();
-  const productsActive = pathname === "/" || pathname.startsWith("/productos");
-  const movementsActive = pathname.startsWith("/movimientos");
+  const { searchQuery, setSearchQuery, searchInputRef, filteredItems, openSearch, handleSearchKeyDown } =
+    useSidebarSearch();
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="[&_[data-slot=sidebar-inner]]:bg-background"
-    >
-      <SidebarHeader className="px-3 py-4 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
-        <div className="flex size-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground group-data-[collapsible=icon]:size-8">
+    <Sidebar collapsible="icon" className="border-sidebar-border">
+      <SidebarHeader className="flex-row items-center gap-3 px-4 pt-5 pb-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground group-data-[collapsible=icon]:hidden">
           <BoxesIcon className="size-5" />
         </div>
+        <div className="flex min-w-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
+          <span className="truncate text-base font-semibold tracking-tight text-sidebar-foreground">
+            Boxes
+          </span>
+          <span className="truncate text-sm text-sidebar-foreground/55">
+            Control de inventario
+          </span>
+        </div>
+        <SidebarTrigger className="shrink-0 text-sidebar-foreground/55 hover:bg-sidebar-accent hover:text-sidebar-foreground" />
       </SidebarHeader>
-      <SidebarContent className="px-2 pt-1 group-data-[collapsible=icon]:overflow-visible">
-        <SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center">
-          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-            <SidebarMenuButton
-              isActive={productsActive}
-              tooltip="Productos"
-              className={menuButtonClassName}
-              render={<NavLink to="/" />}
-            >
-              <PackageIcon />
-              <span>Productos</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-            <SidebarMenuButton
-              isActive={movementsActive}
-              tooltip="Movimientos"
-              className={menuButtonClassName}
-              render={<NavLink to="/movimientos" />}
-            >
-              <HistoryIcon />
-              <span>Movimientos</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <div className="px-3 pb-1 group-data-[collapsible=icon]:px-2">
+        <AppSidebarSearch
+          searchQuery={searchQuery}
+          searchInputRef={searchInputRef}
+          onSearchQueryChange={setSearchQuery}
+          onSearchKeyDown={handleSearchKeyDown}
+          onOpenSearch={openSearch}
+        />
+      </div>
+      <SidebarContent className="group-data-[collapsible=icon]:overflow-visible">
+        <SidebarGroup className="px-3">
+          <SidebarGroupLabel className="px-1 text-sm font-normal text-sidebar-foreground/55">
+            Menú principal
+          </SidebarGroupLabel>
+          <SidebarMenu className="gap-1 group-data-[collapsible=icon]:items-center">
+            {filteredItems.map((item) => (
+              <SidebarMenuItem key={item.to}>
+                <SidebarMenuButton
+                  isActive={item.isActive(pathname)}
+                  tooltip={item.label}
+                  className={menuButtonClassName}
+                  render={<NavLink to={item.to} />}
+                >
+                  <item.icon />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+          {filteredItems.length === 0 && (
+            <p className="px-1 py-2 text-sm text-sidebar-foreground/55 group-data-[collapsible=icon]:hidden">
+              Sin resultados para “{searchQuery.trim()}”
+            </p>
+          )}
+        </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="gap-2 px-3 pt-2 pb-3 group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+      <SidebarSeparator className="mx-4 group-data-[collapsible=icon]:mx-2" />
+      <SidebarFooter className="px-3 pt-2 pb-4 group-data-[collapsible=icon]:items-center">
         <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-          <SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center text-">
+          <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Cerrar sesión"
-              className={
-                "h-10 rounded-xl px-2.5 font-medium text-destructive hover:bg-red/50 hover:text-destructive data-active:bg-red/50 data-active:text-destructive group-data-[collapsible=icon]:rounded-xl"
-              }
+              className={cn(
+                menuButtonClassName,
+                "text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:text-destructive",
+              )}
               onClick={endSession}
             >
               <LogOutIcon />

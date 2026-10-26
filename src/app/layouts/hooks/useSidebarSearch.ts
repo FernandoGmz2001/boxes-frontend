@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router";
 import { useSidebar } from "@/components/ui/sidebar.tsx";
+import { usePermissions } from "@/features/auth/hooks/usePermissions.ts";
 import { isCommandKShortcut, isEditableElement } from "@/shared/helpers/keyboard-shortcuts.ts";
 import { NAVIGATION_ITEMS } from "../navigation-items.ts";
 
@@ -17,11 +18,13 @@ export function useSidebarSearch() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { isMobile, setOpen, setOpenMobile } = useSidebar();
+  const { can } = usePermissions();
 
+  const allowedItems = NAVIGATION_ITEMS.filter((item) => can(item.permission));
   const normalizedQuery = normalizeSearchText(searchQuery);
   const filteredItems = normalizedQuery
-    ? NAVIGATION_ITEMS.filter((item) => normalizeSearchText(item.label).includes(normalizedQuery))
-    : NAVIGATION_ITEMS;
+    ? allowedItems.filter((item) => normalizeSearchText(item.label).includes(normalizedQuery))
+    : allowedItems;
 
   const openSearch = () => {
     if (isMobile) setOpenMobile(true);

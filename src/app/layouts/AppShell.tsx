@@ -1,11 +1,6 @@
 import type { CSSProperties } from "react";
 import { Outlet } from "react-router";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar.tsx";
-import AppBreadcrumb from "./AppBreadcrumb.tsx";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar.tsx";
 import AppSidebar from "./AppSidebar.tsx";
 
 export default function AppShell() {

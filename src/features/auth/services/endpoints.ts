@@ -1,5 +1,7 @@
 import { api } from '@/shared/api/client.ts'
+import { handleApiError } from '@/shared/helpers/api-error.ts'
 import type { ILoginRequest, ILoginResponse } from '../interfaces/login.interface.ts'
+import type { IGetProfile } from '../interfaces/profile.interface.ts'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
@@ -31,4 +33,13 @@ function parseLoginResponse(payload: unknown): ILoginResponse {
 export async function login(payload: ILoginRequest) {
   const response = await api.post<unknown>('/auth/login', payload)
   return parseLoginResponse(response.data)
+}
+
+export async function getProfile() {
+  try {
+    const response = await api.get<IGetProfile>('/auth/perfil')
+    return response.data
+  } catch (error) {
+    throw handleApiError(error, 'No se pudieron obtener tus permisos')
+  }
 }

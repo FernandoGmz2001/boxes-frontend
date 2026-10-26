@@ -5,6 +5,9 @@ import MovementsPage from '@/features/movements/pages/MovementsPage.tsx'
 import ProductCreatePage from '@/features/products/pages/ProductCreatePage.tsx'
 import ProductEditPage from '@/features/products/pages/ProductEditPage.tsx'
 import ProductsPage from '@/features/products/pages/ProductsPage.tsx'
+import RolesPage from '@/features/roles/pages/RolesPage.tsx'
+import UsersPage from '@/features/users/pages/UsersPage.tsx'
+import PermissionGate from './PermissionGate.tsx'
 import SessionGate from './SessionGate.tsx'
 
 export default function AppRouter() {
@@ -26,10 +29,20 @@ export default function AppRouter() {
             </SessionGate>
           }
         >
-          <Route index element={<ProductsPage />} />
-          <Route path="movimientos" element={<MovementsPage />} />
-          <Route path="productos/nuevo" element={<ProductCreatePage />} />
-          <Route path="productos/:productId" element={<ProductEditPage />} />
+          <Route element={<PermissionGate permission="productos" />}>
+            <Route index element={<ProductsPage />} />
+            <Route path="productos/nuevo" element={<ProductCreatePage />} />
+            <Route path="productos/:productId" element={<ProductEditPage />} />
+          </Route>
+          <Route element={<PermissionGate permission="movimientos" />}>
+            <Route path="movimientos" element={<MovementsPage />} />
+          </Route>
+          <Route element={<PermissionGate permission="usuarios" />}>
+            <Route path="usuarios" element={<UsersPage />} />
+          </Route>
+          <Route element={<PermissionGate permission="roles" />}>
+            <Route path="roles" element={<RolesPage />} />
+          </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

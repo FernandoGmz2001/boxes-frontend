@@ -42,6 +42,7 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const SIDEBAR_PEEK_DELAY_MS = 40
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
@@ -50,6 +51,8 @@ type SidebarContextProps = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
+  isPeeking: boolean
+  setIsPeeking: (isPeeking: boolean) => void
   toggleSidebar: () => void
 }
 
@@ -79,6 +82,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
+  const [isPeeking, setIsPeeking] = React.useState(false)
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -87,6 +91,7 @@ function SidebarProvider({
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value
+      setIsPeeking(false)
       if (setOpenProp) {
         setOpenProp(openState)
       } else {
@@ -132,9 +137,11 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
+      isPeeking,
+      setIsPeeking,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, isPeeking, toggleSidebar]
   )
 
   return (
@@ -167,13 +174,33 @@ function Sidebar({
   className,
   children,
   dir,
+  onMouseEnter,
+  onMouseLeave,
   ...props
 }: React.ComponentProps<"div"> & {
   side?: "left" | "right"
   variant?: "sidebar" | "floating" | "inset"
   collapsible?: "offcanvas" | "icon" | "none"
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, state, openMobile, setOpenMobile, isPeeking, setIsPeeking } = useSidebar()
+  const peekTimeoutRef = React.useRef<number | undefined>(undefined)
+  const canPeek = collapsible === "icon" && state === "collapsed"
+  const isPeekActive = canPeek && isPeeking
+
+  React.useEffect(() => () => window.clearTimeout(peekTimeoutRef.current), [])
+
+  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    onMouseEnter?.(event)
+    if (!canPeek) return
+    window.clearTimeout(peekTimeoutRef.current)
+    peekTimeoutRef.current = window.setTimeout(() => setIsPeeking(true), SIDEBAR_PEEK_DELAY_MS)
+  }
+
+  const handleMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    onMouseLeave?.(event)
+    window.clearTimeout(peekTimeoutRef.current)
+    setIsPeeking(false)
+  }
 
   if (collapsible === "none") {
     return (
@@ -183,6 +210,8 @@ function Sidebar({
           "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
           className
         )}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         {...props}
       >
         {children}
@@ -219,8 +248,9 @@ function Sidebar({
   return (
     <div
       className="group peer hidden text-sidebar-foreground md:block"
-      data-state={state}
-      data-collapsible={state === "collapsed" ? collapsible : ""}
+      data-state={isPeekActive ? "expanded" : state}
+      data-collapsible={state === "collapsed" && !isPeekActive ? collapsible : ""}
+      data-peek={isPeekActive ? "true" : undefined}
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
@@ -229,19 +259,21 @@ function Sidebar({
       <div
         data-slot="sidebar-gap"
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))] group-data-[peek=true]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
+            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[peek=true]:w-(--sidebar-width-icon)"
         )}
       />
       <div
         data-slot="sidebar-container"
         data-side={side}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[peek=true]:z-40 group-data-[peek=true]:duration-350 group-data-[peek=true]:shadow-[8px_0_32px_-8px_rgb(0_0_0/0.18)] data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex",
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
@@ -370,7 +402,7 @@ function SidebarSeparator({
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn("mx-2 w-auto bg-sidebar-border", className)}
+      className={cn("mx-2 bg-sidebar-border data-horizontal:w-auto", className)}
       {...props}
     />
   )
@@ -486,7 +518,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
   {
     variants: {
       variant: {
@@ -520,7 +552,7 @@ function SidebarMenuButton({
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
   } & VariantProps<typeof sidebarMenuButtonVariants>) {
-  const { isMobile, state } = useSidebar()
+  const { isMobile, state, isPeeking } = useSidebar()
   const comp = useRender({
     defaultTagName: "button",
     props: mergeProps<"button">(
@@ -554,7 +586,7 @@ function SidebarMenuButton({
       <TooltipContent
         side="right"
         align="center"
-        hidden={state !== "collapsed" || isMobile}
+        hidden={state !== "collapsed" || isMobile || isPeeking}
         {...tooltip}
       />
     </Tooltip>

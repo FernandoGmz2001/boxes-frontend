@@ -33,6 +33,8 @@ export default defineConfig({
       "/claves-producto-servicio": apiProxy,
       "/claves-unidad": apiProxy,
       "/objetos-impuesto": apiProxy,
+      "/usuarios": apiProxy,
+      "/roles": apiProxy,
     },
   },
 });

@@ -2,6 +2,21 @@ export const QUERY_KEYS = {
   AUTH: {
     ALL: ['auth'] as const,
     LOGIN: ['auth', 'login'] as const,
+    PROFILES: ['auth', 'profile'] as const,
+    PROFILE: (userId: number) => ['auth', 'profile', userId] as const,
+  },
+  USERS: {
+    ALL: ['users'] as const,
+    LISTS: ['users', 'list'] as const,
+    LIST: (params: { pagina?: number; limite?: number; busqueda?: string; activo?: boolean }) =>
+      ['users', 'list', params] as const,
+    DETAIL: (userId: number) => ['users', 'detail', userId] as const,
+  },
+  ROLES: {
+    ALL: ['roles'] as const,
+    LISTS: ['roles', 'list'] as const,
+    LIST: (params: { pagina?: number; limite?: number; busqueda?: string }) => ['roles', 'list', params] as const,
+    DETAIL: (roleId: number) => ['roles', 'detail', roleId] as const,
   },
   CATEGORIES: {
     ALL: ['categories'] as const,

@@ -15,7 +15,7 @@ import type { IGetCategory } from "@/features/categories/interfaces/get.interfac
 import type { ProductRowEditHandlers } from "../hooks/useProductRowEdit.ts";
 import type { IGetProduct } from "../interfaces/get.interface.ts";
 import ProductEditableCell from "./ProductEditableCell.tsx";
-import ProductImage from "./ProductImage.tsx";
+import ProductImagePreview from "./ProductImagePreview.tsx";
 
 export interface ProductColumnHandlers extends ProductRowEditHandlers {
   categories: IGetCategory[];
@@ -92,7 +92,7 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
 
         return (
           <div className="flex min-w-0 items-center gap-3">
-            <ProductImage
+            <ProductImagePreview
               src={product.imagen_url}
               name={product.nombre_producto}
             />

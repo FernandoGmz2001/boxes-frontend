@@ -1,6 +1,14 @@
-import { HistoryIcon, PackageIcon, ShieldCheckIcon, UsersIcon, type LucideIcon } from 'lucide-react'
+import {
+  HistoryIcon,
+  PackageIcon,
+  ShieldCheckIcon,
+  ShoppingCartIcon,
+  UsersIcon,
+  WalletIcon,
+  type LucideIcon,
+} from 'lucide-react'
 
-export const PERMISSIONS = ['productos', 'movimientos', 'usuarios', 'roles'] as const
+export const PERMISSIONS = ['productos', 'movimientos', 'ventas', 'cajas', 'usuarios', 'roles'] as const
 
 export type Permission = (typeof PERMISSIONS)[number]
 
@@ -20,6 +28,16 @@ export const APP_MODULES: Record<Permission, AppModule> = {
     label: 'Movimientos',
     description: 'Entradas, salidas y ajustes de inventario.',
     icon: HistoryIcon,
+  },
+  ventas: {
+    label: 'Punto de venta',
+    description: 'Abrir turno, cobrar ventas y hacer el corte de caja.',
+    icon: ShoppingCartIcon,
+  },
+  cajas: {
+    label: 'Cajas',
+    description: 'Supervisión de cajas, turnos y ventas de todos los usuarios.',
+    icon: WalletIcon,
   },
   usuarios: {
     label: 'Usuarios',

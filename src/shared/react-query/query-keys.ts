@@ -64,4 +64,34 @@ export const QUERY_KEYS = {
     LIST: (params: { pagina?: number; limite?: number; busqueda?: string }) => ['tax-objects', 'list', params] as const,
     DETAIL: (key: string) => ['tax-objects', 'detail', key] as const,
   },
+  POS: {
+    ALL: ['pos'] as const,
+    CASH_REGISTERS: (params: { pagina?: number; limite?: number; activa?: boolean }) =>
+      ['pos', 'cash-registers', params] as const,
+    CURRENT_SHIFT: ['pos', 'shifts', 'current'] as const,
+    SHIFT_DETAIL: (shiftId: number) => ['pos', 'shifts', 'detail', shiftId] as const,
+    SHIFT_CORTE: (shiftId: number) => ['pos', 'shifts', 'corte', shiftId] as const,
+    SALES: ['pos', 'sales'] as const,
+    SALE_LIST: (params: {
+      pagina?: number
+      limite?: number
+      turno_id?: number
+      folio?: string
+      fecha_desde?: string
+      fecha_hasta?: string
+    }) => ['pos', 'sales', 'list', params] as const,
+    SALE_DETAIL: (saleId: number) => ['pos', 'sales', 'detail', saleId] as const,
+  },
+  SHIFTS: {
+    ALL: ['shifts'] as const,
+    LIST: (params: {
+      pagina?: number
+      limite?: number
+      caja_id?: number
+      usuario_id?: number
+      estado?: string
+      fecha_desde?: string
+      fecha_hasta?: string
+    }) => ['shifts', 'list', params] as const,
+  },
 } as const

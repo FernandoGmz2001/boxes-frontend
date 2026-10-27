@@ -35,6 +35,9 @@ export default defineConfig({
       "/objetos-impuesto": apiProxy,
       "/usuarios": apiProxy,
       "/roles": apiProxy,
+      "/cajas": apiProxy,
+      "/turnos": apiProxy,
+      "/ventas": apiProxy,
     },
   },
 });

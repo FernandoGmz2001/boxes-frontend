@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { ROUTES } from "@/app/routes/routes.constants.ts";
 import { APP_MODULES, type Permission } from "@/shared/auth/permissions.ts";
 
 export type NavigationSection = "main" | "admin";
@@ -33,6 +34,22 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
     permission: "movimientos",
     section: "main",
     isActive: (pathname) => pathname.startsWith("/movimientos"),
+  },
+  {
+    label: APP_MODULES.ventas.label,
+    to: ROUTES.POS,
+    icon: APP_MODULES.ventas.icon,
+    permission: "ventas",
+    section: "main",
+    isActive: (pathname) => pathname.startsWith(ROUTES.POS),
+  },
+  {
+    label: "Turnos y cortes",
+    to: ROUTES.SHIFTS,
+    icon: APP_MODULES.cajas.icon,
+    permission: "cajas",
+    section: "admin",
+    isActive: (pathname) => pathname.startsWith(ROUTES.SHIFTS),
   },
   {
     label: APP_MODULES.usuarios.label,

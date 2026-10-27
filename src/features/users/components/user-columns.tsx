@@ -1,10 +1,18 @@
 import { createColumnHelper } from "@tanstack/react-table";
+import { cn } from "cn";
 import {
+  ActivityIcon,
+  CircleCheckIcon,
+  CircleOffIcon,
+  MailIcon,
   MoreHorizontalIcon,
   PencilIcon,
+  ShieldIcon,
   UserCheckIcon,
+  UserIcon,
   UserXIcon,
 } from "lucide-react";
+import DataTableColumnHeader from "@/components/features/DataTable/DataTableColumnHeader.tsx";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
@@ -30,24 +38,31 @@ const columnHelper = createColumnHelper<DataTableFeatures, IGetUser>();
 export function createUserColumns(handlers: UserColumnHandlers) {
   return columnHelper.columns([
     columnHelper.accessor("nombre", {
-      header: "Usuario",
+      header: () => <DataTableColumnHeader icon={UserIcon} title="Usuario" />,
       cell: ({ row }) => {
         const user = row.original;
+        const isCurrentUser = user.id === handlers.currentUserId;
 
         return (
           <div className="flex min-w-0 items-center gap-3">
-            <Avatar>
-              <AvatarFallback>{userInitials(user.nombre)}</AvatarFallback>
+            <Avatar className={cn(!user.activo && "opacity-60")}>
+              <AvatarFallback
+                className={cn(
+                  "font-medium",
+                  isCurrentUser && "bg-info/10 text-info dark:bg-info/20",
+                )}
+              >
+                {userInitials(user.nombre)}
+              </AvatarFallback>
             </Avatar>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">
-                {user.nombre}
-                {user.id === handlers.currentUserId ? (
-                  <span className="text-muted-foreground"> (tú)</span>
-                ) : null}
+              <span className="flex items-center gap-2 font-medium">
+                <span className="truncate">{user.nombre}</span>
+                {isCurrentUser ? <Badge variant="info">Tú</Badge> : null}
               </span>
-              <span className="truncate text-muted-foreground">
-                {user.email}
+              <span className="inline-flex min-w-0 items-center gap-1 text-muted-foreground">
+                <MailIcon className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{user.email}</span>
               </span>
             </div>
           </div>
@@ -56,18 +71,27 @@ export function createUserColumns(handlers: UserColumnHandlers) {
     }),
     columnHelper.display({
       id: "rol",
-      header: "Rol",
+      header: () => <DataTableColumnHeader icon={ShieldIcon} title="Rol" />,
       cell: ({ row }) => (
-        <Badge variant="secondary">{row.original.rol.nombre}</Badge>
+        <Badge variant="outline">
+          <ShieldIcon data-icon="inline-start" />
+          {row.original.rol.nombre}
+        </Badge>
       ),
     }),
     columnHelper.accessor("activo", {
-      header: "Estado",
+      header: () => <DataTableColumnHeader icon={ActivityIcon} title="Estado" />,
       cell: ({ row }) =>
         row.original.activo ? (
-          <Badge variant="outline">Activo</Badge>
+          <Badge variant="success">
+            <CircleCheckIcon data-icon="inline-start" />
+            Activo
+          </Badge>
         ) : (
-          <Badge variant="destructive">Inactivo</Badge>
+          <Badge variant="secondary">
+            <CircleOffIcon data-icon="inline-start" />
+            Inactivo
+          </Badge>
         ),
     }),
     columnHelper.display({

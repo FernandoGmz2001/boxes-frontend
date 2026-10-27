@@ -1,12 +1,30 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { EyeIcon } from "lucide-react";
-import { cn } from "cn";
+import {
+  ActivityIcon,
+  CalculatorIcon,
+  CalendarCheckIcon,
+  CalendarClockIcon,
+  CheckIcon,
+  CircleDotIcon,
+  EyeIcon,
+  HandCoinsIcon,
+  HashIcon,
+  LockIcon,
+  MonitorIcon,
+  ScaleIcon,
+  TrendingDownIcon,
+  TrendingUpIcon,
+  UserIcon,
+} from "lucide-react";
+import DataTableColumnHeader from "@/components/features/DataTable/DataTableColumnHeader.tsx";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { formatDateTime } from "@/features/pos/pos-dates.ts";
 import { formatCents, toCents } from "@/features/pos/pos-money.ts";
 import { formatMoney } from "@/features/products/format-money.ts";
+import { userInitials } from "@/features/users/user-initials.ts";
 import type { ITurnoResumen } from "../interfaces/get-all.interface.ts";
 
 export interface ShiftColumnHandlers {
@@ -23,7 +41,7 @@ function formatDifference(cents: number) {
 export function createShiftColumns(handlers: ShiftColumnHandlers) {
   return columnHelper.columns([
     columnHelper.accessor("id", {
-      header: "Turno",
+      header: () => <DataTableColumnHeader icon={HashIcon} title="Turno" />,
       cell: ({ row }) => (
         <button
           type="button"
@@ -36,59 +54,124 @@ export function createShiftColumns(handlers: ShiftColumnHandlers) {
     }),
     columnHelper.display({
       id: "usuario",
-      header: "Cajero",
-      cell: ({ row }) => row.original.usuario.nombre,
+      header: () => <DataTableColumnHeader icon={UserIcon} title="Cajero" />,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Avatar size="sm">
+            <AvatarFallback className="font-medium">
+              {userInitials(row.original.usuario.nombre)}
+            </AvatarFallback>
+          </Avatar>
+          <span className="font-medium">{row.original.usuario.nombre}</span>
+        </div>
+      ),
     }),
     columnHelper.display({
       id: "caja",
-      header: "Caja",
-      cell: ({ row }) => row.original.caja.nombre,
-    }),
-    columnHelper.accessor("abierto_at", {
-      header: "Apertura",
-      cell: ({ row }) => formatDateTime(row.original.abierto_at),
-    }),
-    columnHelper.accessor("cerrado_at", {
-      header: "Cierre",
-      cell: ({ row }) => (row.original.cerrado_at ? formatDateTime(row.original.cerrado_at) : "—"),
-    }),
-    columnHelper.accessor("estado", {
-      header: "Estado",
+      header: () => <DataTableColumnHeader icon={MonitorIcon} title="Caja" />,
       cell: ({ row }) => (
-        <Badge variant={row.original.estado === "Abierto" ? "default" : "secondary"}>{row.original.estado}</Badge>
+        <Badge variant="outline">
+          <MonitorIcon data-icon="inline-start" />
+          {row.original.caja.nombre}
+        </Badge>
       ),
     }),
+    columnHelper.accessor("abierto_at", {
+      header: () => (
+        <DataTableColumnHeader icon={CalendarClockIcon} title="Apertura" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {formatDateTime(row.original.abierto_at)}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("cerrado_at", {
+      header: () => (
+        <DataTableColumnHeader icon={CalendarCheckIcon} title="Cierre" />
+      ),
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">
+          {row.original.cerrado_at
+            ? formatDateTime(row.original.cerrado_at)
+            : "—"}
+        </span>
+      ),
+    }),
+    columnHelper.accessor("estado", {
+      header: () => <DataTableColumnHeader icon={ActivityIcon} title="Estado" />,
+      cell: ({ row }) =>
+        row.original.estado === "Abierto" ? (
+          <Badge variant="success">
+            <CircleDotIcon data-icon="inline-start" className="animate-pulse" />
+            Abierto
+          </Badge>
+        ) : (
+          <Badge variant="secondary">
+            <LockIcon data-icon="inline-start" />
+            Cerrado
+          </Badge>
+        ),
+    }),
     columnHelper.accessor("efectivo_esperado", {
-      header: () => <span className="block text-right">Esperado</span>,
+      header: () => (
+        <DataTableColumnHeader
+          icon={CalculatorIcon}
+          title="Esperado"
+          className="w-full justify-end"
+        />
+      ),
       cell: ({ row }) => (
         <span className="block text-right tabular-nums">
-          {row.original.efectivo_esperado ? formatMoney(row.original.efectivo_esperado) : "—"}
+          {row.original.efectivo_esperado
+            ? formatMoney(row.original.efectivo_esperado)
+            : "—"}
         </span>
       ),
     }),
     columnHelper.accessor("efectivo_contado", {
-      header: () => <span className="block text-right">Contado</span>,
+      header: () => (
+        <DataTableColumnHeader
+          icon={HandCoinsIcon}
+          title="Contado"
+          className="w-full justify-end"
+        />
+      ),
       cell: ({ row }) => (
         <span className="block text-right tabular-nums">
-          {row.original.efectivo_contado ? formatMoney(row.original.efectivo_contado) : "—"}
+          {row.original.efectivo_contado
+            ? formatMoney(row.original.efectivo_contado)
+            : "—"}
         </span>
       ),
     }),
     columnHelper.accessor("diferencia", {
-      header: () => <span className="block text-right">Diferencia</span>,
+      header: () => (
+        <DataTableColumnHeader
+          icon={ScaleIcon}
+          title="Diferencia"
+          className="w-full justify-end"
+        />
+      ),
       cell: ({ row }) => {
-        if (row.original.diferencia === null) return <span className="block text-right">—</span>;
+        if (row.original.diferencia === null) {
+          return <span className="block text-right text-muted-foreground">—</span>;
+        }
+
         const cents = toCents(row.original.diferencia);
+        const DifferenceIcon =
+          cents > 0 ? TrendingUpIcon : cents < 0 ? TrendingDownIcon : CheckIcon;
+
         return (
-          <span
-            className={cn(
-              "block text-right font-medium tabular-nums",
-              cents > 0 && "text-emerald-700 dark:text-emerald-400",
-              cents < 0 && "text-destructive",
-            )}
-          >
-            {formatDifference(cents)}
-          </span>
+          <div className="flex justify-end">
+            <Badge
+              variant={cents > 0 ? "success" : cents < 0 ? "destructive" : "secondary"}
+              className="tabular-nums"
+            >
+              <DifferenceIcon data-icon="inline-start" />
+              {cents === 0 ? "Cuadra" : formatDifference(cents)}
+            </Badge>
+          </div>
         );
       },
     }),

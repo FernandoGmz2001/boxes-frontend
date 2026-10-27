@@ -14,7 +14,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group.tsx";
 import type { IGetCategory } from "@/features/categories/interfaces/get.interface.ts";
-import { formatMoney } from "../format-money.ts";
 import type { ProductRowEditHandlers } from "../hooks/useProductRowEdit.ts";
 import type { IGetProduct } from "../interfaces/get.interface.ts";
 
@@ -24,8 +23,7 @@ type ProductCellField =
   | "cantidad_en_existencia"
   | "stock_minimo"
   | "costo_compra"
-  | "precio_venta"
-  | "ganancia";
+  | "precio_venta";
 
 interface ProductEditableCellProps extends ProductRowEditHandlers {
   product: IGetProduct;
@@ -45,17 +43,6 @@ export default function ProductEditableCell({
   isSaving,
 }: ProductEditableCellProps) {
   const values = valuesFor(product);
-
-  if (field === "ganancia") {
-    const sale = Number(values.precio_venta);
-    const cost = Number(values.costo_compra);
-    const profit = sale - cost;
-
-    return (
-      <span>{Number.isFinite(profit) ? formatMoney(String(profit)) : "—"}</span>
-    );
-  }
-
   const error = errorFor(product.id, field);
   const invalid = error ? true : undefined;
 

@@ -1,7 +1,24 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  BadgeDollarSignIcon,
+  BoxesIcon,
+  CircleCheckIcon,
+  CircleOffIcon,
+  MoreHorizontalIcon,
+  PackageIcon,
+  PencilIcon,
+  ReceiptIcon,
+  ScanBarcodeIcon,
+  TagIcon,
+  TrashIcon,
+  TrendingUpIcon,
+  WrenchIcon,
+} from "lucide-react";
 import { Link } from "react-router";
+import DataTableColumnHeader from "@/components/features/DataTable/DataTableColumnHeader.tsx";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
+import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Checkbox } from "@/components/ui/checkbox.tsx";
 import {
@@ -16,6 +33,8 @@ import type { ProductRowEditHandlers } from "../hooks/useProductRowEdit.ts";
 import type { IGetProduct } from "../interfaces/get.interface.ts";
 import ProductEditableCell from "./ProductEditableCell.tsx";
 import ProductImagePreview from "./ProductImagePreview.tsx";
+import ProductProfitCell from "./ProductProfitCell.tsx";
+import ProductStockBadge from "./ProductStockBadge.tsx";
 
 export interface ProductColumnHandlers extends ProductRowEditHandlers {
   categories: IGetCategory[];
@@ -33,8 +52,7 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
       | "id_categoria"
       | "cantidad_en_existencia"
       | "costo_compra"
-      | "precio_venta"
-      | "ganancia",
+      | "precio_venta",
   ) => {
     const {
       categories,
@@ -86,9 +104,10 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
       ),
     }),
     columnHelper.accessor("nombre_producto", {
-      header: "Producto",
+      header: () => <DataTableColumnHeader icon={PackageIcon} title="Producto" />,
       cell: ({ row }) => {
         const product = row.original;
+        const sku = handlers.valuesFor(product).sku.trim();
 
         return (
           <div className="flex min-w-0 items-center gap-3">
@@ -96,32 +115,96 @@ export function createProductColumns(handlers: ProductColumnHandlers) {
               src={product.imagen_url}
               name={product.nombre_producto}
             />
-            {editableCell(product, "nombre_producto")}
+            <div className="flex min-w-0 flex-col gap-1">
+              {editableCell(product, "nombre_producto")}
+              {sku || product.es_servicio ? (
+                <div className="flex items-center gap-1.5">
+                  {sku ? (
+                    <Badge variant="outline" className="font-mono">
+                      <ScanBarcodeIcon data-icon="inline-start" />
+                      {sku}
+                    </Badge>
+                  ) : null}
+                  {product.es_servicio ? (
+                    <Badge variant="info">
+                      <WrenchIcon data-icon="inline-start" />
+                      Servicio
+                    </Badge>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
         );
       },
     }),
     columnHelper.accessor("id_categoria", {
-      header: "Categoría",
+      header: () => <DataTableColumnHeader icon={TagIcon} title="Categoría" />,
       cell: ({ row }) => editableCell(row.original, "id_categoria"),
     }),
     columnHelper.accessor("cantidad_en_existencia", {
-      header: "Cantidad en existencia",
-      cell: ({ row }) => editableCell(row.original, "cantidad_en_existencia"),
+      header: () => <DataTableColumnHeader icon={BoxesIcon} title="Existencia" />,
+      cell: ({ row }) => {
+        const product = row.original;
+        const values = handlers.valuesFor(product);
+
+        return (
+          <div className="flex items-start gap-2">
+            <div className="w-20">
+              {editableCell(product, "cantidad_en_existencia")}
+            </div>
+            {product.es_servicio ? null : (
+              <div className="mt-1.5">
+                <ProductStockBadge
+                  stock={values.cantidad_en_existencia}
+                  minimumStock={values.stock_minimo}
+                />
+              </div>
+            )}
+          </div>
+        );
+      },
     }),
     columnHelper.accessor("precio_venta", {
-      header: "Precio",
+      header: () => (
+        <DataTableColumnHeader icon={BadgeDollarSignIcon} title="Precio" />
+      ),
       cell: ({ row }) => editableCell(row.original, "precio_venta"),
     }),
     columnHelper.accessor("costo_compra", {
-      header: "Costo",
+      header: () => <DataTableColumnHeader icon={ReceiptIcon} title="Costo" />,
       cell: ({ row }) => editableCell(row.original, "costo_compra"),
     }),
-
     columnHelper.display({
       id: "ganancia",
-      header: "Ganancia",
-      cell: ({ row }) => editableCell(row.original, "ganancia"),
+      header: () => (
+        <DataTableColumnHeader icon={TrendingUpIcon} title="Ganancia" />
+      ),
+      cell: ({ row }) => {
+        const values = handlers.valuesFor(row.original);
+
+        return (
+          <ProductProfitCell
+            salePrice={values.precio_venta}
+            purchaseCost={values.costo_compra}
+          />
+        );
+      },
+    }),
+    columnHelper.accessor("activo", {
+      header: () => <DataTableColumnHeader icon={ActivityIcon} title="Estado" />,
+      cell: ({ row }) =>
+        row.original.activo ? (
+          <Badge variant="success">
+            <CircleCheckIcon data-icon="inline-start" />
+            Activo
+          </Badge>
+        ) : (
+          <Badge variant="secondary">
+            <CircleOffIcon data-icon="inline-start" />
+            Inactivo
+          </Badge>
+        ),
     }),
     columnHelper.display({
       id: "actions",

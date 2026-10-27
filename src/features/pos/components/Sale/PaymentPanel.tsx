@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { BanknoteIcon, CreditCardIcon, LandmarkIcon, type LucideIcon } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button.tsx";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card.tsx";
@@ -9,13 +8,8 @@ import { Separator } from "@/components/ui/separator.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group.tsx";
 import { PAYMENT_METHODS, type PaymentMethod } from "../../interfaces/sales/get.interface.ts";
+import { PAYMENT_METHOD_ICONS } from "../../payment-method-icons.ts";
 import { formatCents, parseAmountInput, toCents } from "../../pos-money.ts";
-
-const PAYMENT_METHOD_ICONS: Record<PaymentMethod, LucideIcon> = {
-  Efectivo: BanknoteIcon,
-  Tarjeta: CreditCardIcon,
-  Transferencia: LandmarkIcon,
-};
 
 export interface PaymentSelection {
   metodo_pago: PaymentMethod;

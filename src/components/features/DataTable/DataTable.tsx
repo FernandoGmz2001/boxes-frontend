@@ -7,6 +7,7 @@ import {
   type RowSelectionState,
 } from '@tanstack/react-table'
 import { cn } from 'cn'
+import { SearchXIcon } from 'lucide-react'
 import { Separator } from '@/components/ui/separator.tsx'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table.tsx'
 import DataTablePagination from './DataTablePagination.tsx'
@@ -83,11 +84,14 @@ export default function DataTable<TData extends RowData>({
   return (
     <div>
       <Table>
-        <TableHeader>
+        <TableHeader className="[&_tr]:border-b-0">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="bg-muted/60 hover:bg-muted/60">
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead
+                  key={header.id}
+                  className="h-10 text-xs font-medium tracking-wide text-muted-foreground uppercase first:rounded-l-lg last:rounded-r-lg"
+                >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>
               ))}
@@ -119,8 +123,11 @@ export default function DataTable<TData extends RowData>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No hay resultados.
+              <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
+                <span className="inline-flex items-center gap-2">
+                  <SearchXIcon className="size-4" aria-hidden="true" />
+                  No hay resultados.
+                </span>
               </TableCell>
             </TableRow>
           )}

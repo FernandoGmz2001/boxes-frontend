@@ -1,5 +1,16 @@
 import { createColumnHelper } from "@tanstack/react-table";
-import { LockIcon, MoreHorizontalIcon, PencilIcon, TrashIcon } from "lucide-react";
+import { cn } from "cn";
+import {
+  LayoutGridIcon,
+  LockIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  TrashIcon,
+  UsersIcon,
+} from "lucide-react";
+import DataTableColumnHeader from "@/components/features/DataTable/DataTableColumnHeader.tsx";
 import type { DataTableFeatures } from "@/components/features/DataTable/data-table-features.ts";
 import { Badge } from "@/components/ui/badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -23,47 +34,84 @@ const columnHelper = createColumnHelper<DataTableFeatures, IGetRole>();
 export function createRoleColumns(handlers: RoleColumnHandlers) {
   return columnHelper.columns([
     columnHelper.accessor("nombre", {
-      header: "Rol",
+      header: () => <DataTableColumnHeader icon={ShieldIcon} title="Rol" />,
       cell: ({ row }) => {
         const role = row.original;
 
         return (
-          <div className="flex min-w-0 flex-col">
-            <span className="flex items-center gap-2 font-medium">
-              {role.nombre}
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className={cn(
+                "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                role.es_sistema
+                  ? "bg-warning/10 text-warning dark:bg-warning/20"
+                  : "bg-info/10 text-info dark:bg-info/20",
+              )}
+              aria-hidden="true"
+            >
               {role.es_sistema ? (
-                <Badge variant="outline">
-                  <LockIcon data-icon="inline-start" />
-                  Sistema
-                </Badge>
-              ) : null}
+                <ShieldCheckIcon className="size-4" />
+              ) : (
+                <ShieldIcon className="size-4" />
+              )}
             </span>
-            {role.descripcion ? (
-              <span className="truncate text-muted-foreground">
-                {role.descripcion}
+            <div className="flex min-w-0 flex-col">
+              <span className="flex items-center gap-2 font-medium">
+                {role.nombre}
+                {role.es_sistema ? (
+                  <Badge variant="warning">
+                    <LockIcon data-icon="inline-start" />
+                    Sistema
+                  </Badge>
+                ) : null}
               </span>
-            ) : null}
+              {role.descripcion ? (
+                <span className="truncate text-muted-foreground">
+                  {role.descripcion}
+                </span>
+              ) : null}
+            </div>
           </div>
         );
       },
     }),
     columnHelper.accessor("permisos", {
-      header: "Módulos",
-      cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.permisos.map((permission) => (
-            <Badge key={permission} variant="secondary">
-              {APP_MODULES[permission].label}
-            </Badge>
-          ))}
-        </div>
+      header: () => (
+        <DataTableColumnHeader icon={LayoutGridIcon} title="Módulos" />
       ),
+      cell: ({ row }) =>
+        row.original.permisos.length > 0 ? (
+          <div className="flex flex-wrap gap-1">
+            {row.original.permisos.map((permission) => {
+              const ModuleIcon = APP_MODULES[permission].icon;
+
+              return (
+                <Badge key={permission} variant="outline">
+                  <ModuleIcon data-icon="inline-start" />
+                  {APP_MODULES[permission].label}
+                </Badge>
+              );
+            })}
+          </div>
+        ) : (
+          <span className="text-muted-foreground">Sin módulos</span>
+        ),
     }),
     columnHelper.accessor("total_usuarios", {
-      header: "Usuarios",
-      cell: ({ row }) => (
-        <span className="tabular-nums">{row.original.total_usuarios}</span>
-      ),
+      header: () => <DataTableColumnHeader icon={UsersIcon} title="Usuarios" />,
+      cell: ({ row }) => {
+        const totalUsers = row.original.total_usuarios;
+
+        return (
+          <Badge
+            variant={totalUsers > 0 ? "info" : "secondary"}
+            className="tabular-nums"
+          >
+            <UsersIcon data-icon="inline-start" />
+            {totalUsers > 0 ? totalUsers : "Sin usuarios"}
+          </Badge>
+        );
+      },
     }),
     columnHelper.display({
       id: "actions",
